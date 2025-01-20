@@ -40,9 +40,9 @@ open class VideoUnitViewModel(
     val currentVideoTime: LiveData<Long>
         get() = _currentVideoTime
 
-    private val _isUpdated = MutableLiveData(true)
+    protected val isUpdatedMutable = MutableLiveData(true)
     val isUpdated: LiveData<Boolean>
-        get() = _isUpdated
+        get() = isUpdatedMutable
 
     private val _currentIndex = MutableStateFlow(0)
     val currentIndex = _currentIndex.asStateFlow()
@@ -63,9 +63,9 @@ open class VideoUnitViewModel(
         viewModelScope.launch {
             notifier.notifier.collect {
                 if (it is CourseVideoPositionChanged && videoUrl == it.videoUrl) {
-                    _isUpdated.value = false
+                    isUpdatedMutable.value = false
                     _currentVideoTime.value = it.videoTime
-                    _isUpdated.value = true
+                    isUpdatedMutable.value = true
                     isPlaying = it.isPlaying
                 } else if (it is CourseSubtitleLanguageChanged) {
                     transcriptLanguage = it.value

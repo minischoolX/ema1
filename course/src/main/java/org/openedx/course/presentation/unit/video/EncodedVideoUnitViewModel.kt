@@ -106,6 +106,7 @@ class EncodedVideoUnitViewModel(
         CastContext.getSharedInstance(context, executor).addOnCompleteListener {
             it.result?.let { castContext ->
                 castPlayer = CastPlayer(castContext)
+                isUpdatedMutable.value = true
             }
         }
     }
