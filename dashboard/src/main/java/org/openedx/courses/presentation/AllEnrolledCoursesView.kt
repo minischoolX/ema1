@@ -230,7 +230,7 @@ private fun AllEnrolledCoursesView(
         val contentWidth by remember(key1 = windowSize) {
             mutableStateOf(
                 windowSize.windowSizeValue(
-                    expanded = Modifier.widthIn(Dp.Unspecified, 650.dp),
+                    expanded = Modifier.widthIn(Dp.Unspecified, 560.dp),
                     compact = Modifier.fillMaxWidth(),
                 )
             )
@@ -274,7 +274,9 @@ private fun AllEnrolledCoursesView(
                             Header(
                                 modifier = Modifier
                                     .padding(
-                                        start = contentPaddings.calculateStartPadding(layoutDirection),
+                                        start = contentPaddings.calculateStartPadding(
+                                            layoutDirection
+                                        ),
                                         end = contentPaddings.calculateEndPadding(layoutDirection)
                                     ),
                                 onSearchClick = {
@@ -305,50 +307,52 @@ private fun AllEnrolledCoursesView(
 
                                 !state.courses.isNullOrEmpty() -> {
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(contentPaddings),
-                                        contentAlignment = Alignment.Center
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.TopCenter
                                     ) {
-                                        Column(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            LazyVerticalGrid(
-                                                modifier = Modifier
-                                                    .fillMaxHeight(),
-                                                state = scrollState,
-                                                columns = GridCells.Fixed(columns),
-                                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                content = {
-                                                    items(state.courses) { course ->
-                                                        CourseItem(
-                                                            course = course,
-                                                            apiHostUrl = apiHostUrl,
-                                                            onClick = {
-                                                                onAction(AllEnrolledCoursesAction.OpenCourse(it))
-                                                            }
-                                                        )
-                                                    }
-                                                    item(span = { GridItemSpan(columns) }) {
-                                                        if (state.canLoadMore) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .fillMaxWidth()
-                                                                    .height(180.dp),
-                                                                contentAlignment = Alignment.Center
-                                                            ) {
-                                                                CircularProgressIndicator(
-                                                                    color = MaterialTheme.appColors.primary
+                                        LazyVerticalGrid(
+                                            modifier = Modifier
+                                                .fillMaxHeight(),
+                                            state = scrollState,
+                                            columns = GridCells.Fixed(columns),
+                                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            contentPadding = contentPaddings,
+                                            content = {
+                                                items(state.courses) { course ->
+                                                    CourseItem(
+                                                        course = course,
+                                                        apiHostUrl = apiHostUrl,
+                                                        onClick = {
+                                                            onAction(
+                                                                AllEnrolledCoursesAction.OpenCourse(
+                                                                    it
                                                                 )
-                                                            }
+                                                            )
+                                                        }
+                                                    )
+                                                }
+                                                item(span = { GridItemSpan(columns) }) {
+                                                    if (state.canLoadMore) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .height(180.dp),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            CircularProgressIndicator(
+                                                                color = MaterialTheme.appColors.primary
+                                                            )
                                                         }
                                                     }
                                                 }
+                                            }
+                                        )
+                                        if (scrollState.shouldLoadMore(
+                                                firstVisibleIndex,
+                                                LOAD_MORE_THRESHOLD
                                             )
-                                        }
-                                        if (scrollState.shouldLoadMore(firstVisibleIndex, LOAD_MORE_THRESHOLD)) {
+                                        ) {
                                             onAction(AllEnrolledCoursesAction.EndOfPage)
                                         }
                                     }

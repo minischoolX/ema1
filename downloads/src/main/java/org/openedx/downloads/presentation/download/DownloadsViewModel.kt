@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.School
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -171,7 +170,7 @@ class DownloadsViewModel(
     }
 
     private fun fetchDownloads(refresh: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             updateLoadingState(isLoading = !refresh, isRefreshing = refresh)
             interactor.getDownloadCoursesPreview(refresh)
                 .onCompletion {
