@@ -1404,6 +1404,23 @@ private fun RoundTab(
     }
 }
 
+@Composable
+fun OpenEdXDropdownMenuItem(
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit
+) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(16.dp),
+        text = text,
+        style = MaterialTheme.appTypography.labelLarge,
+        color = MaterialTheme.appColors.textDark,
+    )
+}
+
 @Preview
 @Composable
 private fun StaticSearchBarPreview() {
