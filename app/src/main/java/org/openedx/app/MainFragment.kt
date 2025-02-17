@@ -17,6 +17,7 @@ import org.openedx.core.adapter.NavigationFragmentAdapter
 import org.openedx.core.presentation.global.appupgrade.UpgradeRequiredFragment
 import org.openedx.core.presentation.global.viewBinding
 import org.openedx.discovery.presentation.DiscoveryRouter
+import org.openedx.downloads.presentation.dates.DownloadsFragment
 import org.openedx.learn.presentation.LearnFragment
 import org.openedx.learn.presentation.LearnTab
 import org.openedx.profile.presentation.profile.ProfileFragment
@@ -40,6 +41,9 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (!viewModel.isDownloadsFragmentEnabled) {
+            binding.bottomNavView.menu.removeItem(R.id.fragmentDownloads)
+        }
 
         initViewPager()
 
@@ -55,9 +59,14 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                     binding.viewPager.setCurrentItem(1, false)
                 }
 
+                R.id.fragmentDownloads -> {
+                    viewModel.logDownloadsTabClickedEvent()
+                    binding.viewPager.setCurrentItem(2, false)
+                }
+
                 R.id.fragmentProfile -> {
                     viewModel.logProfileTabClickedEvent()
-                    binding.viewPager.setCurrentItem(2, false)
+                    binding.viewPager.setCurrentItem(3, false)
                 }
             }
             true
@@ -100,6 +109,10 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                     binding.bottomNavView.selectedItemId = R.id.fragmentDiscover
                 }
 
+                HomeTab.DOWNLOADS.name -> {
+                    binding.bottomNavView.selectedItemId = R.id.fragmentDownloads
+                }
+
                 HomeTab.PROFILE.name -> {
                     binding.bottomNavView.selectedItemId = R.id.fragmentProfile
                 }
@@ -122,6 +135,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         adapter = NavigationFragmentAdapter(this).apply {
             addFragment(LearnFragment.newInstance(openTab = learnTab.name))
             addFragment(viewModel.getDiscoveryFragment)
+            addFragment(DownloadsFragment())
             addFragment(ProfileFragment())
         }
         binding.viewPager.adapter = adapter

@@ -92,6 +92,10 @@ class Config(context: Context) {
         return getObjectOrNewInstance(DASHBOARD, DashboardConfig::class.java)
     }
 
+    fun getDownloadsConfig(): DownloadsConfig {
+        return getObjectOrNewInstance(DOWNLOADS, DownloadsConfig::class.java)
+    }
+
     fun getBranchConfig(): BranchConfig {
         return getObjectOrNewInstance(BRANCH, BranchConfig::class.java)
     }
@@ -179,6 +183,7 @@ class Config(context: Context) {
         private const val DISCOVERY = "DISCOVERY"
         private const val PROGRAM = "PROGRAM"
         private const val DASHBOARD = "DASHBOARD"
+        private const val DOWNLOADS = "DOWNLOADS"
         private const val BRANCH = "BRANCH"
         private const val UI_COMPONENTS = "UI_COMPONENTS"
         private const val PLATFORM_NAME = "PLATFORM_NAME"

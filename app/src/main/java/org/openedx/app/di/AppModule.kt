@@ -68,6 +68,7 @@ import org.openedx.discovery.presentation.DiscoveryRouter
 import org.openedx.discussion.presentation.DiscussionAnalytics
 import org.openedx.discussion.presentation.DiscussionRouter
 import org.openedx.discussion.system.notifier.DiscussionNotifier
+import org.openedx.downloads.presentation.DownloadsRouter
 import org.openedx.foundation.system.ResourceManager
 import org.openedx.foundation.utils.FileUtil
 import org.openedx.profile.data.storage.ProfilePreferences
@@ -127,6 +128,7 @@ val appModule = module {
     single<AppUpgradeRouter> { get<AppRouter>() }
     single { DeepLinkRouter(get(), get(), get(), get(), get(), get()) }
     single<CalendarRouter> { get<AppRouter>() }
+    single<DownloadsRouter> { get<AppRouter>() }
 
     single { NetworkConnection(get()) }
 

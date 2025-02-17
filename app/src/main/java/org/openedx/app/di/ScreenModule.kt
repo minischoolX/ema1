@@ -54,6 +54,7 @@ import org.openedx.discussion.presentation.search.DiscussionSearchThreadViewMode
 import org.openedx.discussion.presentation.threads.DiscussionAddThreadViewModel
 import org.openedx.discussion.presentation.threads.DiscussionThreadsViewModel
 import org.openedx.discussion.presentation.topics.DiscussionTopicsViewModel
+import org.openedx.downloads.presentation.dates.DownloadsViewModel
 import org.openedx.foundation.presentation.WindowSize
 import org.openedx.learn.presentation.LearnViewModel
 import org.openedx.profile.data.repository.ProfileRepository
@@ -190,7 +191,16 @@ val screenModule = module {
             profileRouter = get(),
         )
     }
-    viewModel { (account: Account) -> EditProfileViewModel(get(), get(), get(), get(), get(), account) }
+    viewModel { (account: Account) ->
+        EditProfileViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            account
+        )
+    }
     viewModel { VideoSettingsViewModel(get(), get(), get(), get()) }
     viewModel { (qualityType: String) -> VideoQualityViewModel(qualityType, get(), get(), get()) }
     viewModel { DeleteProfileViewModel(get(), get(), get(), get(), get()) }
@@ -480,6 +490,13 @@ val screenModule = module {
             get(),
             get(),
             get(),
+        )
+    }
+
+    viewModel {
+        DownloadsViewModel(
+            downloadsRouter = get(),
+            networkConnection = get()
         )
     }
 }
