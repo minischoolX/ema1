@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
@@ -50,6 +53,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,6 +63,7 @@ import androidx.fragment.app.Fragment
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.openedx.core.domain.model.DownloadCoursePreview
 import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.IconText
 import org.openedx.core.ui.OfflineModeDialog
@@ -73,6 +78,7 @@ import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appShapes
 import org.openedx.core.ui.theme.appTypography
 import org.openedx.downloads.R
+import org.openedx.foundation.extension.toImageLink
 import org.openedx.foundation.presentation.UIMessage
 import org.openedx.foundation.presentation.rememberWindowSize
 import org.openedx.foundation.presentation.windowSizeValue
@@ -99,6 +105,7 @@ class DownloadsFragment : Fragment() {
                 DownloadsScreen(
                     uiState = uiState,
                     uiMessage = uiMessage,
+                    apiHostUrl = viewModel.apiHostUrl,
                     hasInternetConnection = viewModel.hasInternetConnection,
                     onAction = { action ->
                         when (action) {
@@ -123,6 +130,7 @@ class DownloadsFragment : Fragment() {
 private fun DownloadsScreen(
     uiState: DownloadsUIState,
     uiMessage: UIMessage?,
+    apiHostUrl: String,
     hasInternetConnection: Boolean,
     onAction: (DownloadsViewActions) -> Unit,
 ) {
@@ -174,7 +182,7 @@ private fun DownloadsScreen(
                     ) {
                         CircularProgressIndicator(color = MaterialTheme.appColors.primary)
                     }
-                } else if (false) {
+                } else if (uiState.downloadCoursePreviews.isEmpty()) {
                     EmptyState()
                 } else {
                     Box(
@@ -187,11 +195,13 @@ private fun DownloadsScreen(
                     ) {
                         LazyColumn(
                             modifier = contentWidth,
-                            contentPadding = PaddingValues(bottom = 20.dp, top = 12.dp)
+                            contentPadding = PaddingValues(bottom = 20.dp, top = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
-                            item {
+                            items(uiState.downloadCoursePreviews) {
                                 CourseItem(
-                                    apiHostUrl = "",
+                                    downloadCoursePreview = it,
+                                    apiHostUrl = apiHostUrl,
                                     onClick = {}
                                 )
                             }
@@ -229,6 +239,7 @@ private fun DownloadsScreen(
 @Composable
 private fun CourseItem(
     modifier: Modifier = Modifier,
+    downloadCoursePreview: DownloadCoursePreview,
     apiHostUrl: String,
     onClick: () -> Unit,
 ) {
@@ -249,7 +260,7 @@ private fun CourseItem(
             Column {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-//                        .data(course.course.courseImage.toImageLink(apiHostUrl))
+                        .data(downloadCoursePreview.image.toImageLink(apiHostUrl))
                         .error(org.openedx.core.R.drawable.core_no_image_course)
                         .placeholder(org.openedx.core.R.drawable.core_no_image_course)
                         .build(),
@@ -265,7 +276,7 @@ private fun CourseItem(
                         .padding(top = 8.dp, bottom = 12.dp),
                 ) {
                     Text(
-                        text = "course.name",
+                        text = downloadCoursePreview.name,
                         style = MaterialTheme.appTypography.titleLarge,
                         color = MaterialTheme.appColors.textDark,
                         overflow = TextOverflow.Ellipsis,
@@ -328,7 +339,7 @@ private fun CourseItem(
                 ) {
                     Column {
                         OpenEdXDropdownMenuItem(
-                            text = "Dropdown option1",
+                            text = stringResource(R.string.downloads_remove_course_downloads),
                             onClick = {}
                         )
                         Divider(
@@ -336,7 +347,7 @@ private fun CourseItem(
                             color = MaterialTheme.appColors.divider
                         )
                         OpenEdXDropdownMenuItem(
-                            text = "Dropdown option2",
+                            text = stringResource(R.string.downloads_cancel_download),
                             onClick = {}
                         )
                     }
@@ -375,20 +386,20 @@ private fun MoreButton(
 private fun EmptyState(
     modifier: Modifier = Modifier
 ) {
-//    Box(
-//        modifier = modifier.fillMaxSize(),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Column(
-//            modifier = Modifier.width(200.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Icon(
-//                painter = painterResource(id = org.openedx.core.R.drawable.core_ic_book),
-//                tint = MaterialTheme.appColors.textFieldBorder,
-//                contentDescription = null
-//            )
-//            Spacer(Modifier.height(4.dp))
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.width(200.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                painter = painterResource(id = org.openedx.core.R.drawable.core_ic_book),
+                tint = MaterialTheme.appColors.textFieldBorder,
+                contentDescription = null
+            )
+            Spacer(Modifier.height(4.dp))
 //            Text(
 //                modifier = Modifier
 //                    .testTag("txt_empty_state_title")
@@ -408,8 +419,8 @@ private fun EmptyState(
 //                style = MaterialTheme.appTypography.labelMedium,
 //                textAlign = TextAlign.Center
 //            )
-//        }
-//    }
+        }
+    }
 }
 
 @Preview
@@ -419,6 +430,7 @@ private fun DatesScreenPreview() {
         DownloadsScreen(
             uiState = DownloadsUIState(isLoading = false),
             uiMessage = null,
+            apiHostUrl = "",
             hasInternetConnection = true,
             onAction = {}
         )
@@ -430,6 +442,7 @@ private fun DatesScreenPreview() {
 private fun CourseItemPreview() {
     OpenEdXTheme {
         CourseItem(
+            downloadCoursePreview = DownloadCoursePreview("", "name", "", 2000),
             apiHostUrl = "",
             onClick = {}
         )

@@ -54,6 +54,8 @@ import org.openedx.discussion.presentation.search.DiscussionSearchThreadViewMode
 import org.openedx.discussion.presentation.threads.DiscussionAddThreadViewModel
 import org.openedx.discussion.presentation.threads.DiscussionThreadsViewModel
 import org.openedx.discussion.presentation.topics.DiscussionTopicsViewModel
+import org.openedx.downloads.data.repository.DownloadRepository
+import org.openedx.downloads.domain.interactor.DownloadInteractor
 import org.openedx.downloads.presentation.dates.DownloadsViewModel
 import org.openedx.foundation.presentation.WindowSize
 import org.openedx.learn.presentation.LearnViewModel
@@ -493,10 +495,25 @@ val screenModule = module {
         )
     }
 
+    single {
+        DownloadInteractor(
+            repository = get()
+        )
+    }
+    single {
+        DownloadRepository(
+            api = get(),
+            corePreferences = get(),
+            dao = get()
+        )
+    }
     viewModel {
         DownloadsViewModel(
             downloadsRouter = get(),
-            networkConnection = get()
+            networkConnection = get(),
+            interactor = get(),
+            resourceManager = get(),
+            config = get()
         )
     }
 }

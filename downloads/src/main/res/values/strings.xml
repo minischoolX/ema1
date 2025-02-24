@@ -2,4 +2,6 @@
 <resources>
     <string name="downloads">Downloads</string>
     <string name="downloads_download_course">Download course</string>
+    <string name="downloads_remove_course_downloads">Remove course downloads</string>
+    <string name="downloads_cancel_download">Cancel download</string>
 </resources>

@@ -8,13 +8,14 @@ import org.openedx.core.data.model.room.CourseCalendarEventEntity
 import org.openedx.core.data.model.room.CourseCalendarStateEntity
 import org.openedx.core.data.model.room.CourseEnrollmentDetailsEntity
 import org.openedx.core.data.model.room.CourseStructureEntity
+import org.openedx.core.data.model.room.DownloadCoursePreview
 import org.openedx.core.data.model.room.OfflineXBlockProgress
 import org.openedx.core.data.model.room.discovery.EnrolledCourseEntity
+import org.openedx.core.data.storage.CourseDao
 import org.openedx.core.module.db.CalendarDao
 import org.openedx.core.module.db.DownloadDao
 import org.openedx.core.module.db.DownloadModelEntity
 import org.openedx.course.data.storage.CourseConverter
-import org.openedx.course.data.storage.CourseDao
 import org.openedx.dashboard.data.DashboardDao
 import org.openedx.discovery.data.converter.DiscoveryConverter
 import org.openedx.discovery.data.model.room.CourseEntity
@@ -31,6 +32,8 @@ const val DATABASE_NAME = "OpenEdX_db"
         DownloadModelEntity::class,
         OfflineXBlockProgress::class,
         CourseCalendarEventEntity::class,
+        CourseCalendarStateEntity::class,
+        DownloadCoursePreview::class,
         CourseCalendarStateEntity::class,
         CourseEnrollmentDetailsEntity::class
     ],
