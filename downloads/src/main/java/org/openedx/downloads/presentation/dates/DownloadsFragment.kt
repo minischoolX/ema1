@@ -53,8 +53,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -400,25 +402,25 @@ private fun EmptyState(
                 contentDescription = null
             )
             Spacer(Modifier.height(4.dp))
-//            Text(
-//                modifier = Modifier
-//                    .testTag("txt_empty_state_title")
-//                    .fillMaxWidth(),
-//                text = stringResource(id = R.string.dates_empty_state_title),
-//                color = MaterialTheme.appColors.textDark,
-//                style = MaterialTheme.appTypography.titleMedium,
-//                textAlign = TextAlign.Center
-//            )
-//            Spacer(Modifier.height(12.dp))
-//            Text(
-//                modifier = Modifier
-//                    .testTag("txt_empty_state_description")
-//                    .fillMaxWidth(),
-//                text = stringResource(id = R.string.dates_empty_state_description),
-//                color = MaterialTheme.appColors.textDark,
-//                style = MaterialTheme.appTypography.labelMedium,
-//                textAlign = TextAlign.Center
-//            )
+            Text(
+                modifier = Modifier
+                    .testTag("txt_empty_state_title")
+                    .fillMaxWidth(),
+                text = stringResource(id = R.string.downloads_empty_state_title),
+                color = MaterialTheme.appColors.textDark,
+                style = MaterialTheme.appTypography.titleMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                modifier = Modifier
+                    .testTag("txt_empty_state_description")
+                    .fillMaxWidth(),
+                text = stringResource(id = R.string.downloads_empty_state_description),
+                color = MaterialTheme.appColors.textDark,
+                style = MaterialTheme.appTypography.labelMedium,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
