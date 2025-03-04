@@ -1,4 +1,4 @@
-package org.openedx.course.domain.model
+package org.openedx.core.domain.model
 
 import androidx.compose.ui.graphics.painter.Painter
 

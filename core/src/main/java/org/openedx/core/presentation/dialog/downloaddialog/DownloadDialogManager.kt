@@ -1,4 +1,4 @@
-package org.openedx.course.presentation.download
+package org.openedx.core.presentation.dialog.downloaddialog
 
 import androidx.fragment.app.FragmentManager
 import kotlinx.coroutines.CoroutineScope
@@ -7,17 +7,17 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.openedx.core.BlockType
 import org.openedx.core.data.storage.CorePreferences
+import org.openedx.core.domain.interactor.ICourseInteractor
 import org.openedx.core.domain.model.Block
 import org.openedx.core.module.DownloadWorkerController
 import org.openedx.core.module.db.DownloadModel
 import org.openedx.core.system.StorageManager
 import org.openedx.core.system.connection.NetworkConnection
-import org.openedx.course.domain.interactor.CourseInteractor
 
 class DownloadDialogManager(
     private val networkConnection: NetworkConnection,
     private val corePreferences: CorePreferences,
-    private val interactor: CourseInteractor,
+    private val interactor: ICourseInteractor,
     private val workerController: DownloadWorkerController
 ) {
 
@@ -87,7 +87,7 @@ class DownloadDialogManager(
         isBlocksDownloaded: Boolean,
         onlyVideoBlocks: Boolean = false,
         fragmentManager: FragmentManager,
-        removeDownloadModels: (blockId: String) -> Unit,
+        removeDownloadModels: (blockId: String, courseId: String) -> Unit,
         saveDownloadModels: (blockId: String) -> Unit,
     ) {
         createDownloadItems(
@@ -150,7 +150,7 @@ class DownloadDialogManager(
                     val blocks = courseStructure.blockData.filter {
                         it.id in verticalBlocks.flatMap { it.descendants } && it.id in blockIds
                     }
-                    val totalSize = blocks.sumOf { getFileSize(it) }
+                    val totalSize = blocks.sumOf { it.getFileSize() }
 
                     if (blocks.isNotEmpty()) notDownloadedSubSections.add(subSectionBlock)
                     if (totalSize > 0) {
@@ -188,7 +188,7 @@ class DownloadDialogManager(
         fragmentManager: FragmentManager,
         isBlocksDownloaded: Boolean,
         onlyVideoBlocks: Boolean,
-        removeDownloadModels: (blockId: String) -> Unit,
+        removeDownloadModels: (blockId: String, courseId: String) -> Unit,
         saveDownloadModels: (blockId: String) -> Unit,
     ) {
         coroutineScope.launch {
@@ -204,7 +204,7 @@ class DownloadDialogManager(
                                 (!onlyVideoBlocks || it.type == BlockType.VIDEO)
                     }
                 }
-                val size = blocks.sumOf { getFileSize(it) }
+                val size = blocks.sumOf { it.getFileSize() }
                 if (size > 0) DownloadDialogItem(title = subSectionBlock.displayName, size = size) else null
             }
 
@@ -215,18 +215,17 @@ class DownloadDialogManager(
                     isDownloadFailed = false,
                     sizeSum = downloadDialogItems.sumOf { it.size },
                     fragmentManager = fragmentManager,
-                    removeDownloadModels = { subSectionsBlocks.forEach { removeDownloadModels(it.id) } },
+                    removeDownloadModels = {
+                        subSectionsBlocks.forEach {
+                            removeDownloadModels(
+                                it.id,
+                                courseId
+                            )
+                        }
+                    },
                     saveDownloadModels = { subSectionsBlocks.forEach { saveDownloadModels(it.id) } }
                 )
             )
-        }
-    }
-
-    private fun getFileSize(block: Block): Long {
-        return when {
-            block.type == BlockType.VIDEO -> block.downloadModel?.size ?: 0L
-            block.isxBlock -> block.offlineDownload?.fileSize ?: 0L
-            else -> 0L
         }
     }
 }

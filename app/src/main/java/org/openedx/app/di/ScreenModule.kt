@@ -13,6 +13,7 @@ import org.openedx.auth.presentation.signin.SignInViewModel
 import org.openedx.auth.presentation.signup.SignUpViewModel
 import org.openedx.core.Validator
 import org.openedx.core.domain.interactor.CalendarInteractor
+import org.openedx.core.domain.interactor.ICourseInteractor
 import org.openedx.core.presentation.dialog.selectorbottomsheet.SelectDialogViewModel
 import org.openedx.core.presentation.settings.video.VideoQualityViewModel
 import org.openedx.core.repository.CalendarRepository
@@ -56,7 +57,7 @@ import org.openedx.discussion.presentation.threads.DiscussionThreadsViewModel
 import org.openedx.discussion.presentation.topics.DiscussionTopicsViewModel
 import org.openedx.downloads.data.repository.DownloadRepository
 import org.openedx.downloads.domain.interactor.DownloadInteractor
-import org.openedx.downloads.presentation.dates.DownloadsViewModel
+import org.openedx.downloads.presentation.download.DownloadsViewModel
 import org.openedx.foundation.presentation.WindowSize
 import org.openedx.learn.presentation.LearnViewModel
 import org.openedx.profile.data.repository.ProfileRepository
@@ -232,6 +233,7 @@ val screenModule = module {
 
     single { CourseRepository(get(), get(), get(), get(), get()) }
     factory { CourseInteractor(get()) }
+    single<ICourseInteractor> { get<CourseInteractor>() }
 
     viewModel { (pathId: String, infoType: String) ->
         CourseInfoViewModel(
@@ -504,7 +506,8 @@ val screenModule = module {
         DownloadRepository(
             api = get(),
             corePreferences = get(),
-            dao = get()
+            dao = get(),
+            courseDao = get()
         )
     }
     viewModel {
@@ -513,7 +516,14 @@ val screenModule = module {
             networkConnection = get(),
             interactor = get(),
             resourceManager = get(),
-            config = get()
+            config = get(),
+            preferencesManager = get(),
+            coreAnalytics = get(),
+            downloadDao = get(),
+            workerController = get(),
+            downloadHelper = get(),
+            downloadDialogManager = get(),
+            fileUtil = get()
         )
     }
 }

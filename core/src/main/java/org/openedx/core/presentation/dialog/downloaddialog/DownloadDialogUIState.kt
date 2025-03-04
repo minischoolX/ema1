@@ -1,4 +1,4 @@
-package org.openedx.course.presentation.download
+package org.openedx.core.presentation.dialog.downloaddialog
 
 import android.os.Parcelable
 import androidx.fragment.app.FragmentManager

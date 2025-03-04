@@ -4,8 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.openedx.core.DatabaseManager
+import org.openedx.core.data.storage.CourseDao
 import org.openedx.core.module.db.DownloadDao
-import org.openedx.course.data.storage.CourseDao
 import org.openedx.dashboard.data.DashboardDao
 import org.openedx.discovery.data.storage.DiscoveryDao
 

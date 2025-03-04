@@ -246,7 +246,7 @@ fun OfflineQueueCard(
                 .weight(1f)
         ) {
             Text(
-                text = downloadModel.title.ifEmpty { stringResource(id = R.string.course_download_untitled) },
+                text = downloadModel.title.ifEmpty { stringResource(id = coreR.string.course_download_untitled) },
                 style = MaterialTheme.appTypography.titleSmall,
                 color = MaterialTheme.appColors.textPrimary,
                 overflow = TextOverflow.Ellipsis,
@@ -748,7 +748,7 @@ fun CourseExpandableChapterCard(
                         )
                     } else if (downloadedState == DownloadedState.WAITING) {
                         Icon(
-                            painter = painterResource(id = R.drawable.course_download_waiting),
+                            painter = painterResource(id = coreR.drawable.core_download_waiting),
                             contentDescription = stringResource(
                                 id = R.string.course_accessibility_stop_downloading_course_section
                             ),
@@ -832,7 +832,7 @@ fun CourseSubSectionItem(
         if (isAssignmentEnable) {
             val assignmentString =
                 stringResource(
-                    R.string.course_subsection_assignment_info,
+                    coreR.string.course_subsection_assignment_info,
                     block.assignmentProgress?.assignmentType ?: "",
                     stringResource(id = coreR.string.core_date_format_assignment_due, due),
                     block.assignmentProgress?.numPointsEarned?.toInt() ?: 0,

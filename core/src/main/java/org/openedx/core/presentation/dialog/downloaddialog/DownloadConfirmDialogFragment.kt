@@ -1,4 +1,4 @@
-package org.openedx.course.presentation.download
+package org.openedx.core.presentation.dialog.downloaddialog
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -33,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
+import org.openedx.core.R
+import org.openedx.core.domain.model.DownloadDialogResource
 import org.openedx.core.presentation.dialog.DefaultDialogBox
 import org.openedx.core.ui.AutoSizeText
 import org.openedx.core.ui.IconText
@@ -41,13 +43,10 @@ import org.openedx.core.ui.OpenEdXOutlinedButton
 import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appTypography
-import org.openedx.course.R
-import org.openedx.course.domain.model.DownloadDialogResource
 import org.openedx.foundation.extension.parcelable
 import org.openedx.foundation.extension.toFileSize
 import org.openedx.foundation.system.PreviewFragmentManager
 import androidx.compose.ui.graphics.Color as ComposeColor
-import org.openedx.core.R as coreR
 
 class DownloadConfirmDialogFragment : DialogFragment() {
 
@@ -66,7 +65,7 @@ class DownloadConfirmDialogFragment : DialogFragment() {
                 val sizeSumString = uiState.sizeSum.toFileSize(1, false)
                 val dialogData = when (dialogType) {
                     DownloadConfirmDialogType.CONFIRM -> DownloadDialogResource(
-                        title = stringResource(id = coreR.string.course_confirm_download),
+                        title = stringResource(id = R.string.course_confirm_download),
                         description = stringResource(
                             id = R.string.course_download_confirm_dialog_description,
                             sizeSumString
@@ -79,7 +78,7 @@ class DownloadConfirmDialogFragment : DialogFragment() {
                             id = R.string.course_download_on_cellural_dialog_description,
                             sizeSumString
                         ),
-                        icon = painterResource(id = coreR.drawable.core_ic_warning),
+                        icon = painterResource(id = R.drawable.core_ic_warning),
                     )
 
                     DownloadConfirmDialogType.REMOVE -> DownloadDialogResource(
@@ -112,7 +111,6 @@ class DownloadConfirmDialogFragment : DialogFragment() {
     }
 
     companion object {
-        const val DIALOG_TAG = "DownloadConfirmDialogFragment"
         const val ARG_DIALOG_TYPE = "dialogType"
         const val ARG_UI_STATE = "uiState"
 
@@ -216,7 +214,7 @@ private fun DownloadConfirmDialogView(
             )
             OpenEdXOutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(id = coreR.string.core_cancel),
+                text = stringResource(id = R.string.core_cancel),
                 backgroundColor = MaterialTheme.appColors.background,
                 borderColor = MaterialTheme.appColors.primaryButtonBackground,
                 textColor = MaterialTheme.appColors.primaryButtonBackground,

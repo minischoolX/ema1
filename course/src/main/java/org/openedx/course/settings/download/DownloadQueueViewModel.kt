@@ -22,7 +22,6 @@ class DownloadQueueViewModel(
     coreAnalytics: CoreAnalytics,
     downloadHelper: DownloadHelper,
 ) : BaseDownloadViewModel(
-    "",
     downloadDao,
     preferencesManager,
     workerController,
@@ -74,7 +73,7 @@ class DownloadQueueViewModel(
         }
     }
 
-    override fun removeDownloadModels(blockId: String) {
+    override fun removeDownloadModels(blockId: String, courseId: String) {
         viewModelScope.launch {
             workerController.removeModel(blockId)
         }

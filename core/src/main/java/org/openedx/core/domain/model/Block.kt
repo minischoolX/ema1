@@ -81,6 +81,14 @@ data class Block(
         return count
     }
 
+    fun getFileSize(): Long {
+        return when {
+            type == BlockType.VIDEO -> downloadModel?.size ?: 0L
+            isxBlock -> offlineDownload?.fileSize ?: 0L
+            else -> 0L
+        }
+    }
+
     val isVideoBlock get() = type == BlockType.VIDEO
     val isDiscussionBlock get() = type == BlockType.DISCUSSION
     val isHTMLBlock get() = type == BlockType.HTML

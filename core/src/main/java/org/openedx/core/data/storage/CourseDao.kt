@@ -1,4 +1,4 @@
-package org.openedx.course.data.storage
+package org.openedx.core.data.storage
 
 import androidx.room.Dao
 import androidx.room.Insert

@@ -19,6 +19,7 @@ import org.openedx.core.module.db.DownloadDao
 import org.openedx.core.module.download.BaseDownloadViewModel
 import org.openedx.core.module.download.DownloadHelper
 import org.openedx.core.presentation.CoreAnalytics
+import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.system.connection.NetworkConnection
 import org.openedx.core.system.notifier.CourseLoading
 import org.openedx.core.system.notifier.CourseNotifier
@@ -29,7 +30,6 @@ import org.openedx.course.R
 import org.openedx.course.domain.interactor.CourseInteractor
 import org.openedx.course.presentation.CourseAnalytics
 import org.openedx.course.presentation.CourseRouter
-import org.openedx.course.presentation.download.DownloadDialogManager
 import org.openedx.foundation.presentation.UIMessage
 import org.openedx.foundation.system.ResourceManager
 import org.openedx.foundation.utils.FileUtil
@@ -53,7 +53,6 @@ class CourseVideoViewModel(
     workerController: DownloadWorkerController,
     downloadHelper: DownloadHelper,
 ) : BaseDownloadViewModel(
-    courseId,
     downloadDao,
     preferencesManager,
     workerController,
@@ -123,10 +122,10 @@ class CourseVideoViewModel(
         getVideos()
     }
 
-    override fun saveDownloadModels(folder: String, id: String) {
+    override fun saveDownloadModels(folder: String, courseId: String, id: String) {
         if (preferencesManager.videoSettings.wifiDownloadOnly) {
             if (networkConnection.isWifiConnected()) {
-                super.saveDownloadModels(folder, id)
+                super.saveDownloadModels(folder, courseId, id)
             } else {
                 viewModelScope.launch {
                     _uiMessage.emit(
@@ -137,11 +136,11 @@ class CourseVideoViewModel(
                 }
             }
         } else {
-            super.saveDownloadModels(folder, id)
+            super.saveDownloadModels(folder, courseId, id)
         }
     }
 
-    override fun saveAllDownloadModels(folder: String) {
+    override fun saveAllDownloadModels(folder: String, courseId: String) {
         if (preferencesManager.videoSettings.wifiDownloadOnly && !networkConnection.isWifiConnected()) {
             viewModelScope.launch {
                 _uiMessage.emit(
@@ -151,7 +150,7 @@ class CourseVideoViewModel(
             return
         }
 
-        super.saveAllDownloadModels(folder)
+        super.saveAllDownloadModels(folder, courseId)
     }
 
     fun getVideos() {
@@ -261,10 +260,12 @@ class CourseVideoViewModel(
         viewModelScope.launch {
             val courseData = _uiState.value as? CourseVideosUIState.CourseData ?: return@launch
 
-            val subSectionsBlocks = courseData.courseSubSections.values.flatten().filter { it.id in blocksIds }
+            val subSectionsBlocks =
+                courseData.courseSubSections.values.flatten().filter { it.id in blocksIds }
 
             val blocks = subSectionsBlocks.flatMap { subSectionsBlock ->
-                val verticalBlocks = allBlocks.values.filter { it.id in subSectionsBlock.descendants }
+                val verticalBlocks =
+                    allBlocks.values.filter { it.id in subSectionsBlock.descendants }
                 allBlocks.values.filter { it.id in verticalBlocks.flatMap { it.descendants } }
             }
 
@@ -273,9 +274,12 @@ class CourseVideoViewModel(
             val isAllBlocksDownloaded = downloadableBlocks.all { isBlockDownloaded(it.id) }
 
             val notDownloadedSubSectionBlocks = subSectionsBlocks.mapNotNull { subSectionsBlock ->
-                val verticalBlocks = allBlocks.values.filter { it.id in subSectionsBlock.descendants }
+                val verticalBlocks =
+                    allBlocks.values.filter { it.id in subSectionsBlock.descendants }
                 val notDownloadedBlocks = allBlocks.values.filter {
-                    it.id in verticalBlocks.flatMap { it.descendants } && it.isDownloadable && !isBlockDownloaded(it.id)
+                    it.id in verticalBlocks.flatMap { it.descendants } && it.isDownloadable && !isBlockDownloaded(
+                        it.id
+                    )
                 }
                 if (notDownloadedBlocks.isNotEmpty()) subSectionsBlock else null
             }
@@ -285,7 +289,8 @@ class CourseVideoViewModel(
             }
 
             if (downloadingBlocks.isNotEmpty()) {
-                val downloadableChildren = downloadingBlocks.flatMap { getDownloadableChildren(it).orEmpty() }
+                val downloadableChildren =
+                    downloadingBlocks.flatMap { getDownloadableChildren(it).orEmpty() }
                 if (config.getCourseUIConfig().isCourseDownloadQueueEnabled) {
                     courseRouter.navigateToDownloadQueue(fragmentManager, downloadableChildren)
                 } else {
@@ -304,7 +309,7 @@ class CourseVideoViewModel(
                     fragmentManager = fragmentManager,
                     removeDownloadModels = ::removeDownloadModels,
                     saveDownloadModels = { blockId ->
-                        saveDownloadModels(fileUtil.getExternalAppDir().path, blockId)
+                        saveDownloadModels(fileUtil.getExternalAppDir().path, courseId, blockId)
                     }
                 )
             }

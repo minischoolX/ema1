@@ -52,13 +52,13 @@ import org.openedx.core.module.db.FileType
 import org.openedx.core.module.download.DownloadHelper
 import org.openedx.core.presentation.CoreAnalytics
 import org.openedx.core.presentation.CoreAnalyticsEvent
+import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.system.connection.NetworkConnection
 import org.openedx.core.system.notifier.CourseNotifier
 import org.openedx.core.system.notifier.CourseStructureUpdated
 import org.openedx.course.domain.interactor.CourseInteractor
 import org.openedx.course.presentation.CourseAnalytics
 import org.openedx.course.presentation.CourseRouter
-import org.openedx.course.presentation.download.DownloadDialogManager
 import org.openedx.foundation.presentation.UIMessage
 import org.openedx.foundation.system.ResourceManager
 import org.openedx.foundation.utils.FileUtil
@@ -343,10 +343,8 @@ class CourseOutlineViewModelTest {
     @Test
     fun `getCourseDataInternal success with internet connection`() =
         runTest(UnconfinedTestDispatcher()) {
-            coEvery { interactor.getCourseStructureFlow(any(), any()) } returns flowOf(
-                courseStructure
-            )
-            every { networkConnection.isOnline() } returns true
+            coEvery { interactor.getCourseStructureFlow(any(), any()) } returns flowOf(courseStructure
+            )every { networkConnection.isOnline() } returns true
             coEvery { downloadDao.getAllDataFlow() } returns flow {
                 emit(
                     listOf(
@@ -581,7 +579,7 @@ class CourseOutlineViewModelTest {
                 viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
             }
         }
-        viewModel.saveDownloadModels("", "")
+        viewModel.saveDownloadModels("", "", "")
         advanceUntilIdle()
         verify(exactly = 1) {
             coreAnalytics.logEvent(
@@ -633,7 +631,7 @@ class CourseOutlineViewModelTest {
                     viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
                 }
             }
-            viewModel.saveDownloadModels("", "")
+            viewModel.saveDownloadModels("", "", "")
             advanceUntilIdle()
 
             assert(message.await()?.message.isNullOrEmpty())

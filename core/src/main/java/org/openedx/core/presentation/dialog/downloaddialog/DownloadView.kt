@@ -1,4 +1,4 @@
-package org.openedx.course.presentation.download
+package org.openedx.core.presentation.dialog.downloaddialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

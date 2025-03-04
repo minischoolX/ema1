@@ -1,4 +1,4 @@
-package org.openedx.downloads.presentation.dates
+package org.openedx.downloads.presentation.download
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.outlined.CloudDownload
@@ -49,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
@@ -66,6 +69,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.openedx.core.domain.model.DownloadCoursePreview
+import org.openedx.core.module.db.DownloadModel
+import org.openedx.core.module.db.DownloadedState
 import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.IconText
 import org.openedx.core.ui.OfflineModeDialog
@@ -80,10 +85,12 @@ import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appShapes
 import org.openedx.core.ui.theme.appTypography
 import org.openedx.downloads.R
+import org.openedx.foundation.extension.toFileSize
 import org.openedx.foundation.extension.toImageLink
 import org.openedx.foundation.presentation.UIMessage
 import org.openedx.foundation.presentation.rememberWindowSize
 import org.openedx.foundation.presentation.windowSizeValue
+import org.openedx.core.R as coreR
 
 class DownloadsFragment : Fragment() {
 
@@ -117,6 +124,24 @@ class DownloadsFragment : Fragment() {
 
                             DownloadsViewActions.SwipeRefresh -> {
                                 viewModel.refreshData()
+                            }
+
+                            is DownloadsViewActions.DownloadCourse -> {
+                                viewModel.downloadCourse(
+                                    requireActivity().supportFragmentManager,
+                                    action.courseId
+                                )
+                            }
+
+                            is DownloadsViewActions.CancelDownloading -> {
+                                viewModel.cancelDownloading(action.courseId)
+                            }
+
+                            is DownloadsViewActions.RemoveDownloads -> {
+                                viewModel.removeDownloads(
+                                    requireActivity().supportFragmentManager,
+                                    action.courseId
+                                )
                             }
                         }
                     }
@@ -200,11 +225,25 @@ private fun DownloadsScreen(
                             contentPadding = PaddingValues(bottom = 20.dp, top = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
-                            items(uiState.downloadCoursePreviews) {
+                            items(uiState.downloadCoursePreviews) { item ->
+                                val downloadModels =
+                                    uiState.downloadModels.filter { it.courseId == item.id }
+                                val downloadState = uiState.courseDownloadState[item.id]
+                                    ?: DownloadedState.NOT_DOWNLOADED
                                 CourseItem(
-                                    downloadCoursePreview = it,
+                                    downloadCoursePreview = item,
+                                    downloadModels = downloadModels,
+                                    downloadedState = downloadState,
                                     apiHostUrl = apiHostUrl,
-                                    onClick = {}
+                                    onDownloadClick = {
+                                        onAction(DownloadsViewActions.DownloadCourse(item.id))
+                                    },
+                                    onCancelClick = {
+                                        onAction(DownloadsViewActions.CancelDownloading(item.id))
+                                    },
+                                    onRemoveClick = {
+                                        onAction(DownloadsViewActions.RemoveDownloads(item.id))
+                                    }
                                 )
                             }
                         }
@@ -242,12 +281,22 @@ private fun DownloadsScreen(
 private fun CourseItem(
     modifier: Modifier = Modifier,
     downloadCoursePreview: DownloadCoursePreview,
+    downloadModels: List<DownloadModel>,
+    downloadedState: DownloadedState,
     apiHostUrl: String,
-    onClick: () -> Unit,
+    onDownloadClick: () -> Unit,
+    onRemoveClick: () -> Unit,
+    onCancelClick: () -> Unit
 ) {
+    var isButtonEnabled by remember { mutableStateOf(true) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
+    val downloadedSize = downloadModels
+        .filter { it.downloadedState == DownloadedState.DOWNLOADED }
+        .sumOf { it.size }
+    val availableSize = downloadCoursePreview.totalSize - downloadedSize
+    val availableSizeString = availableSize.toFileSize(space = false)
     val progress: Float = try {
-        1.toFloat() / 2.toFloat()
+        downloadedSize.toFloat() / availableSize.toFloat()
     } catch (_: ArithmeticException) {
         0f
     }
@@ -286,39 +335,103 @@ private fun CourseItem(
                         maxLines = 2
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(CircleShape),
-                        progress = progress,
-                        color = MaterialTheme.appColors.successGreen,
-                        backgroundColor = MaterialTheme.appColors.divider
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    IconText(
-                        icon = Icons.Filled.CloudDone,
-                        color = MaterialTheme.appColors.successGreen,
-                        text = "qwe"
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    IconText(
-                        icon = Icons.Outlined.CloudDownload,
-                        color = MaterialTheme.appColors.textPrimaryVariant,
-                        text = "rty"
-                    )
+                    if (downloadedState != DownloadedState.DOWNLOADED && downloadedSize != 0L) {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(CircleShape),
+                            progress = progress,
+                            color = MaterialTheme.appColors.successGreen,
+                            backgroundColor = MaterialTheme.appColors.divider
+                        )
+                    }
+                    if (downloadedSize != 0L) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        IconText(
+                            icon = Icons.Filled.CloudDone,
+                            color = MaterialTheme.appColors.successGreen,
+                            text = stringResource(
+                                R.string.downloaded_downloaded_size,
+                                downloadedSize.toFileSize(space = false)
+                            )
+                        )
+                    }
+                    if (downloadedState != DownloadedState.DOWNLOADED) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        IconText(
+                            icon = Icons.Outlined.CloudDownload,
+                            color = MaterialTheme.appColors.textPrimaryVariant,
+                            text = stringResource(
+                                R.string.downloaded_available_size,
+                                availableSizeString
+                            )
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
-                    OpenEdXButton(
-                        onClick = onClick,
-                        content = {
-                            IconText(
-                                text = stringResource(R.string.downloads_download_course),
-                                icon = Icons.Outlined.CloudDownload,
-                                color = MaterialTheme.appColors.primaryButtonText,
-                                textStyle = MaterialTheme.appTypography.labelLarge
+                    if (downloadedState.isWaitingOrDownloading) {
+                        isButtonEnabled = true
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                if (downloadedState == DownloadedState.DOWNLOADING) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(36.dp),
+                                        backgroundColor = Color.LightGray,
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.appColors.primary
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = coreR.drawable.core_download_waiting),
+                                        contentDescription = stringResource(
+                                            id = R.string.course_accessibility_stop_downloading_course
+                                        ),
+                                        tint = MaterialTheme.appColors.error
+                                    )
+                                }
+                                IconButton(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .padding(2.dp),
+                                    onClick = onCancelClick
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Close,
+                                        contentDescription = stringResource(
+                                            id = R.string.course_accessibility_stop_downloading_course
+                                        ),
+                                        tint = MaterialTheme.appColors.error
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(coreR.string.course_downloading),
+                                style = MaterialTheme.appTypography.titleSmall,
+                                color = MaterialTheme.appColors.textPrimary
                             )
                         }
-                    )
+                    } else if (downloadedState == DownloadedState.NOT_DOWNLOADED) {
+                        OpenEdXButton(
+                            onClick = {
+                                isButtonEnabled = false
+                                onDownloadClick()
+                            },
+                            enabled = isButtonEnabled,
+                            content = {
+                                IconText(
+                                    text = stringResource(R.string.downloads_download_course),
+                                    icon = Icons.Outlined.CloudDownload,
+                                    color = MaterialTheme.appColors.primaryButtonText,
+                                    textStyle = MaterialTheme.appTypography.labelLarge
+                                )
+                            }
+                        )
+                    }
                 }
             }
 
@@ -326,11 +439,13 @@ private fun CourseItem(
                 modifier = Modifier
                     .align(Alignment.TopEnd),
             ) {
-                MoreButton(
-                    onClick = {
-                        isDropdownExpanded = true
-                    }
-                )
+                if (downloadedSize != 0L || downloadedState.isWaitingOrDownloading) {
+                    MoreButton(
+                        onClick = {
+                            isDropdownExpanded = true
+                        }
+                    )
+                }
                 DropdownMenu(
                     modifier = Modifier
                         .crop(vertical = 8.dp)
@@ -340,22 +455,31 @@ private fun CourseItem(
                     onDismissRequest = { isDropdownExpanded = false },
                 ) {
                     Column {
-                        OpenEdXDropdownMenuItem(
-                            text = stringResource(R.string.downloads_remove_course_downloads),
-                            onClick = {}
-                        )
-                        Divider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.appColors.divider
-                        )
-                        OpenEdXDropdownMenuItem(
-                            text = stringResource(R.string.downloads_cancel_download),
-                            onClick = {}
-                        )
+                        if (downloadedSize != 0L) {
+                            OpenEdXDropdownMenuItem(
+                                text = stringResource(R.string.downloads_remove_course_downloads),
+                                onClick = {
+                                    isDropdownExpanded = false
+                                    onRemoveClick()
+                                }
+                            )
+                            Divider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = MaterialTheme.appColors.divider
+                            )
+                        }
+                        if (downloadedState.isWaitingOrDownloading) {
+                            OpenEdXDropdownMenuItem(
+                                text = stringResource(R.string.downloads_cancel_download),
+                                onClick = {
+                                    isDropdownExpanded = false
+                                    onCancelClick()
+                                }
+                            )
+                        }
                     }
                 }
             }
-
         }
     }
 }
@@ -445,8 +569,12 @@ private fun CourseItemPreview() {
     OpenEdXTheme {
         CourseItem(
             downloadCoursePreview = DownloadCoursePreview("", "name", "", 2000),
+            downloadModels = emptyList(),
             apiHostUrl = "",
-            onClick = {}
+            downloadedState = DownloadedState.NOT_DOWNLOADED,
+            onDownloadClick = {},
+            onCancelClick = {},
+            onRemoveClick = {},
         )
     }
 }
