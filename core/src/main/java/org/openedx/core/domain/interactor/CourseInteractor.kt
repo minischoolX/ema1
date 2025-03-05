@@ -3,7 +3,7 @@ package org.openedx.core.domain.interactor
 import org.openedx.core.domain.model.CourseStructure
 import org.openedx.core.module.db.DownloadModel
 
-interface ICourseInteractor {
+interface CourseInteractor {
     suspend fun getCourseStructure(
         courseId: String,
         isNeedRefresh: Boolean = false

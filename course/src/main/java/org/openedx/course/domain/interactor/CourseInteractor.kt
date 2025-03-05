@@ -2,7 +2,7 @@ package org.openedx.course.domain.interactor
 
 import kotlinx.coroutines.flow.Flow
 import org.openedx.core.BlockType
-import org.openedx.core.domain.interactor.ICourseInteractor
+import org.openedx.core.domain.interactor.CourseInteractor
 import org.openedx.core.domain.model.Block
 import org.openedx.core.domain.model.CourseEnrollmentDetails
 import org.openedx.core.domain.model.CourseStructure
@@ -11,7 +11,7 @@ import org.openedx.course.data.repository.CourseRepository
 @Suppress("TooManyFunctions")
 class CourseInteractor(
     private val repository: CourseRepository
-) : ICourseInteractor {
+) : CourseInteractor {
 
     suspend fun getCourseStructureFlow(
         courseId: String,

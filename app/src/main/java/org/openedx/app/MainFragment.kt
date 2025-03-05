@@ -1,6 +1,7 @@
 package org.openedx.app
 
 import android.os.Bundle
+import android.view.Menu
 import android.view.View
 import androidx.core.os.bundleOf
 import androidx.core.view.forEach
@@ -41,33 +42,69 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (!viewModel.isDownloadsFragmentEnabled) {
-            binding.bottomNavView.menu.removeItem(R.id.fragmentDownloads)
+
+        requireArguments().apply {
+            getString(ARG_COURSE_ID).takeIf { it.isNullOrBlank().not() }?.let { courseId ->
+                val infoType = getString(ARG_INFO_TYPE)
+                if (viewModel.isDiscoveryTypeWebView && infoType != null) {
+                    router.navigateToCourseInfo(parentFragmentManager, courseId, infoType)
+                } else {
+                    router.navigateToCourseDetail(parentFragmentManager, courseId)
+                }
+                putString(ARG_COURSE_ID, "")
+                putString(ARG_INFO_TYPE, "")
+            }
         }
 
-        initViewPager()
+        val openTabArg = requireArguments().getString(ARG_OPEN_TAB, HomeTab.LEARN.name)
+        val learnFragment = LearnFragment.newInstance(
+            openTab = if (openTabArg == HomeTab.PROGRAMS.name) {
+                LearnTab.PROGRAMS.name
+            } else {
+                LearnTab.COURSES.name
+            }
+        )
+        val tabList = mutableListOf<Pair<Int, Fragment>>().apply {
+            add(R.id.fragmentLearn to learnFragment)
+            add(R.id.fragmentDiscover to viewModel.getDiscoveryFragment)
+            if (viewModel.isDownloadsFragmentEnabled) {
+                add(R.id.fragmentDownloads to DownloadsFragment())
+            }
+            add(R.id.fragmentProfile to ProfileFragment())
+        }
 
-        binding.bottomNavView.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.fragmentLearn -> {
-                    viewModel.logLearnTabClickedEvent()
-                    binding.viewPager.setCurrentItem(0, false)
-                }
+        val menu = binding.bottomNavView.menu
+        menu.clear()
+        val tabTitles = mapOf(
+            R.id.fragmentLearn to resources.getString(R.string.app_navigation_learn),
+            R.id.fragmentDiscover to resources.getString(R.string.app_navigation_discovery),
+            R.id.fragmentDownloads to resources.getString(R.string.app_navigation_downloads),
+            R.id.fragmentProfile to resources.getString(R.string.app_navigation_profile),
+        )
+        val tabIcons = mapOf(
+            R.id.fragmentLearn to R.drawable.app_ic_rows,
+            R.id.fragmentDiscover to R.drawable.app_ic_home,
+            R.id.fragmentDownloads to R.drawable.app_ic_download_cloud,
+            R.id.fragmentProfile to R.drawable.app_ic_profile
+        )
+        for ((id, _) in tabList) {
+            val menuItem = menu.add(Menu.NONE, id, Menu.NONE, tabTitles[id] ?: "")
+            tabIcons[id]?.let { menuItem.setIcon(it) }
+        }
 
-                R.id.fragmentDiscover -> {
-                    viewModel.logDiscoveryTabClickedEvent()
-                    binding.viewPager.setCurrentItem(1, false)
-                }
+        initViewPager(tabList)
 
-                R.id.fragmentDownloads -> {
-                    viewModel.logDownloadsTabClickedEvent()
-                    binding.viewPager.setCurrentItem(2, false)
-                }
+        val menuIdToIndex = tabList.mapIndexed { index, pair -> pair.first to index }.toMap()
 
-                R.id.fragmentProfile -> {
-                    viewModel.logProfileTabClickedEvent()
-                    binding.viewPager.setCurrentItem(3, false)
-                }
+        binding.bottomNavView.setOnItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.fragmentLearn -> viewModel.logLearnTabClickedEvent()
+                R.id.fragmentDiscover -> viewModel.logDiscoveryTabClickedEvent()
+                R.id.fragmentDownloads -> viewModel.logDownloadsTabClickedEvent()
+                R.id.fragmentProfile -> viewModel.logProfileTabClickedEvent()
+            }
+            menuIdToIndex[menuItem.itemId]?.let { index ->
+                binding.viewPager.setCurrentItem(index, false)
             }
             true
         }
@@ -84,59 +121,27 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             }
         }
 
-        requireArguments().apply {
-            getString(ARG_COURSE_ID).takeIf { it.isNullOrBlank().not() }?.let { courseId ->
-                val infoType = getString(ARG_INFO_TYPE)
-
-                if (viewModel.isDiscoveryTypeWebView && infoType != null) {
-                    router.navigateToCourseInfo(parentFragmentManager, courseId, infoType)
-                } else {
-                    router.navigateToCourseDetail(parentFragmentManager, courseId)
-                }
-
-                // Clear arguments after navigation
-                putString(ARG_COURSE_ID, "")
-                putString(ARG_INFO_TYPE, "")
-            }
-
-            when (requireArguments().getString(ARG_OPEN_TAB, "")) {
-                HomeTab.LEARN.name,
-                HomeTab.PROGRAMS.name -> {
-                    binding.bottomNavView.selectedItemId = R.id.fragmentLearn
-                }
-
-                HomeTab.DISCOVER.name -> {
-                    binding.bottomNavView.selectedItemId = R.id.fragmentDiscover
-                }
-
-                HomeTab.DOWNLOADS.name -> {
-                    binding.bottomNavView.selectedItemId = R.id.fragmentDownloads
-                }
-
-                HomeTab.PROFILE.name -> {
-                    binding.bottomNavView.selectedItemId = R.id.fragmentProfile
-                }
-            }
-            requireArguments().remove(ARG_OPEN_TAB)
+        val initialMenuId = when (openTabArg) {
+            HomeTab.LEARN.name, HomeTab.PROGRAMS.name -> R.id.fragmentLearn
+            HomeTab.DISCOVER.name -> R.id.fragmentDiscover
+            HomeTab.DOWNLOADS.name -> if (viewModel.isDownloadsFragmentEnabled) R.id.fragmentDownloads else R.id.fragmentLearn
+            HomeTab.PROFILE.name -> R.id.fragmentProfile
+            else -> R.id.fragmentLearn
         }
+        binding.bottomNavView.selectedItemId = initialMenuId
+
+        requireArguments().remove(ARG_OPEN_TAB)
     }
 
     @Suppress("MagicNumber")
-    private fun initViewPager() {
+    private fun initViewPager(tabList: List<Pair<Int, Fragment>>) {
         binding.viewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
-        binding.viewPager.offscreenPageLimit = 4
+        binding.viewPager.offscreenPageLimit = tabList.size
 
-        val openTab = requireArguments().getString(ARG_OPEN_TAB, HomeTab.LEARN.name)
-        val learnTab = if (openTab == HomeTab.PROGRAMS.name) {
-            LearnTab.PROGRAMS
-        } else {
-            LearnTab.COURSES
-        }
         adapter = NavigationFragmentAdapter(this).apply {
-            addFragment(LearnFragment.newInstance(openTab = learnTab.name))
-            addFragment(viewModel.getDiscoveryFragment)
-            addFragment(DownloadsFragment())
-            addFragment(ProfileFragment())
+            tabList.forEach { (_, fragment) ->
+                addFragment(fragment)
+            }
         }
         binding.viewPager.adapter = adapter
         binding.viewPager.isUserInputEnabled = false

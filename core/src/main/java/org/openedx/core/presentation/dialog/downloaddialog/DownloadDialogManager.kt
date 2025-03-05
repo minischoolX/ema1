@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.openedx.core.BlockType
 import org.openedx.core.data.storage.CorePreferences
-import org.openedx.core.domain.interactor.ICourseInteractor
+import org.openedx.core.domain.interactor.CourseInteractor
 import org.openedx.core.domain.model.Block
 import org.openedx.core.module.DownloadWorkerController
 import org.openedx.core.module.db.DownloadModel
@@ -17,7 +17,7 @@ import org.openedx.core.system.connection.NetworkConnection
 class DownloadDialogManager(
     private val networkConnection: NetworkConnection,
     private val corePreferences: CorePreferences,
-    private val interactor: ICourseInteractor,
+    private val interactor: CourseInteractor,
     private val workerController: DownloadWorkerController
 ) {
 

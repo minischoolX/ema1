@@ -13,7 +13,6 @@ import org.openedx.auth.presentation.signin.SignInViewModel
 import org.openedx.auth.presentation.signup.SignUpViewModel
 import org.openedx.core.Validator
 import org.openedx.core.domain.interactor.CalendarInteractor
-import org.openedx.core.domain.interactor.ICourseInteractor
 import org.openedx.core.presentation.dialog.selectorbottomsheet.SelectDialogViewModel
 import org.openedx.core.presentation.settings.video.VideoQualityViewModel
 import org.openedx.core.repository.CalendarRepository
@@ -233,7 +232,7 @@ val screenModule = module {
 
     single { CourseRepository(get(), get(), get(), get(), get()) }
     factory { CourseInteractor(get()) }
-    single<ICourseInteractor> { get<CourseInteractor>() }
+    single<org.openedx.core.domain.interactor.CourseInteractor> { get<CourseInteractor>() }
 
     viewModel { (pathId: String, infoType: String) ->
         CourseInfoViewModel(
@@ -498,16 +497,16 @@ val screenModule = module {
     }
 
     single {
-        DownloadInteractor(
-            repository = get()
-        )
-    }
-    single {
         DownloadRepository(
             api = get(),
             corePreferences = get(),
             dao = get(),
             courseDao = get()
+        )
+    }
+    single {
+        DownloadInteractor(
+            repository = get()
         )
     }
     viewModel {

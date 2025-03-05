@@ -89,8 +89,11 @@ class DownloadsViewModel(
                 val downloadingCourseState = blockIdsByCourseId
                     .mapValues { (_, blockIds) ->
                         val blockStates = blockIds.mapNotNull { statusMap[it] }
-                        if (blockStates.isEmpty()) DownloadedState.NOT_DOWNLOADED
-                        else determineCourseState(blockStates)
+                        if (blockStates.isEmpty()) {
+                            DownloadedState.NOT_DOWNLOADED
+                        } else {
+                            determineCourseState(blockStates)
+                        }
                     }
 
                 _uiState.update { state ->
@@ -153,7 +156,8 @@ class DownloadsViewModel(
                     initDownloadModelsStatus()
                     _uiState.update { state ->
                         state.copy(
-                            downloadCoursePreviews = downloadCoursePreviews
+                            downloadCoursePreviews = downloadCoursePreviews,
+                            enableButton = downloadCoursePreviews.associate { it.id to true }
                         )
                     }
                 }
@@ -176,8 +180,18 @@ class DownloadsViewModel(
     fun downloadCourse(fragmentManager: FragmentManager, courseId: String) {
         viewModelScope.launch {
             try {
+                _uiState.update { state ->
+                    state.copy(
+                        enableButton = state.enableButton.toMap() + (courseId to false)
+                    )
+                }
                 downloadAllBlocks(fragmentManager, courseId)
             } catch (e: Exception) {
+                _uiState.update { state ->
+                    state.copy(
+                        enableButton = state.enableButton.toMap() + (courseId to true)
+                    )
+                }
                 if (e.isInternetError()) {
                     _uiMessage.emit(
                         UIMessage.SnackBarMessage(
@@ -194,7 +208,6 @@ class DownloadsViewModel(
             }
         }
     }
-
 
     fun cancelDownloading(courseId: String) {
         viewModelScope.launch {
@@ -232,8 +245,8 @@ class DownloadsViewModel(
         return courseStructure
     }
 
-    private fun downloadAllBlocks(fragmentManager: FragmentManager, courseId: String) {
-        viewModelScope.launch {
+    private suspend fun downloadAllBlocks(fragmentManager: FragmentManager, courseId: String) {
+        try {
             val courseStructure = initBlocks(courseId)
             val downloadModels = interactor.getDownloadModels()
                 .map { list -> list.filter { it.courseId in courseId } }
@@ -260,6 +273,12 @@ class DownloadsViewModel(
                     saveDownloadModels(fileUtil.getExternalAppDir().path, courseId, blockId)
                 }
             )
+        } finally {
+            _uiState.update { state ->
+                state.copy(
+                    enableButton = state.enableButton.toMap() + (courseId to true)
+                )
+            }
         }
     }
 }

@@ -140,7 +140,8 @@ fun CourseVideosScreen(
                 viewModel.removeAllDownloadModels()
             } else {
                 viewModel.saveAllDownloadModels(
-                    fileUtil.getExternalAppDir().path, viewModel.courseId
+                    fileUtil.getExternalAppDir().path,
+                    viewModel.courseId
                 )
             }
         },

@@ -149,7 +149,6 @@ class DownloadsFragment : Fragment() {
             }
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -230,10 +229,12 @@ private fun DownloadsScreen(
                                     uiState.downloadModels.filter { it.courseId == item.id }
                                 val downloadState = uiState.courseDownloadState[item.id]
                                     ?: DownloadedState.NOT_DOWNLOADED
+                                val isButtonEnabled = uiState.enableButton[item.id] ?: false
                                 CourseItem(
                                     downloadCoursePreview = item,
                                     downloadModels = downloadModels,
                                     downloadedState = downloadState,
+                                    isButtonEnabled = isButtonEnabled,
                                     apiHostUrl = apiHostUrl,
                                     onDownloadClick = {
                                         onAction(DownloadsViewActions.DownloadCourse(item.id))
@@ -283,12 +284,12 @@ private fun CourseItem(
     downloadCoursePreview: DownloadCoursePreview,
     downloadModels: List<DownloadModel>,
     downloadedState: DownloadedState,
+    isButtonEnabled: Boolean,
     apiHostUrl: String,
     onDownloadClick: () -> Unit,
     onRemoveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
-    var isButtonEnabled by remember { mutableStateOf(true) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
     val downloadedSize = downloadModels
         .filter { it.downloadedState == DownloadedState.DOWNLOADED }
@@ -370,7 +371,6 @@ private fun CourseItem(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     if (downloadedState.isWaitingOrDownloading) {
-                        isButtonEnabled = true
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
@@ -418,7 +418,6 @@ private fun CourseItem(
                     } else if (downloadedState == DownloadedState.NOT_DOWNLOADED) {
                         OpenEdXButton(
                             onClick = {
-                                isButtonEnabled = false
                                 onDownloadClick()
                             },
                             enabled = isButtonEnabled,
@@ -568,10 +567,11 @@ private fun DatesScreenPreview() {
 private fun CourseItemPreview() {
     OpenEdXTheme {
         CourseItem(
-            downloadCoursePreview = DownloadCoursePreview("", "name", "", 2000),
+            downloadCoursePreview = DownloadCoursePreview("", "name", "", 100),
             downloadModels = emptyList(),
             apiHostUrl = "",
             downloadedState = DownloadedState.NOT_DOWNLOADED,
+            isButtonEnabled = true,
             onDownloadClick = {},
             onCancelClick = {},
             onRemoveClick = {},
