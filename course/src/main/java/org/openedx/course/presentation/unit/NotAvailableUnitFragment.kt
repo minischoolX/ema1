@@ -81,15 +81,15 @@ class NotAvailableUnitFragment : Fragment() {
                     }
 
                     NotAvailableUnitType.OFFLINE_UNSUPPORTED -> {
-                        title = stringResource(id = coreR.string.course_not_available_offline)
+                        title = stringResource(id = coreR.string.core_not_available_offline)
                         description =
-                            stringResource(id = coreR.string.course_explore_other_parts_when_reconnect)
+                            stringResource(id = coreR.string.core_explore_other_parts_when_reconnect)
                     }
 
                     NotAvailableUnitType.NOT_DOWNLOADED -> {
-                        title = stringResource(id = coreR.string.course_not_downloaded)
+                        title = stringResource(id = coreR.string.core_not_downloaded)
                         description =
-                            stringResource(id = coreR.string.course_explore_other_parts_when_reconnect_or_download)
+                            stringResource(id = coreR.string.core_explore_other_parts_when_reconnect_or_download)
                     }
 
                     else -> {

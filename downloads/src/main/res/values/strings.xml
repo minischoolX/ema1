@@ -8,5 +8,6 @@
     <string name="downloads_empty_state_description">You currently have no courses with downloadable content.</string>
     <string name="downloaded_downloaded_size">%1$s downloaded</string>
     <string name="downloaded_available_size">%1$s available</string>
-    <string name="course_accessibility_stop_downloading_course">Stop downloading course</string>
+    <string name="downloads_accessibility_stop_downloading_course">Stop downloading course</string>
+    <string name="downloads_loading_course_structure">Loading course structure…</string>
 </resources>

@@ -3,6 +3,7 @@ package org.openedx.downloads.presentation.download
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,6 +72,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.openedx.core.domain.model.DownloadCoursePreview
 import org.openedx.core.module.db.DownloadModel
 import org.openedx.core.module.db.DownloadedState
+import org.openedx.core.module.db.DownloadedState.LOADING_COURSE_STRUCTURE
 import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.IconText
 import org.openedx.core.ui.OfflineModeDialog
@@ -229,12 +231,10 @@ private fun DownloadsScreen(
                                     uiState.downloadModels.filter { it.courseId == item.id }
                                 val downloadState = uiState.courseDownloadState[item.id]
                                     ?: DownloadedState.NOT_DOWNLOADED
-                                val isButtonEnabled = uiState.enableButton[item.id] ?: false
                                 CourseItem(
                                     downloadCoursePreview = item,
                                     downloadModels = downloadModels,
                                     downloadedState = downloadState,
-                                    isButtonEnabled = isButtonEnabled,
                                     apiHostUrl = apiHostUrl,
                                     onDownloadClick = {
                                         onAction(DownloadsViewActions.DownloadCourse(item.id))
@@ -284,7 +284,6 @@ private fun CourseItem(
     downloadCoursePreview: DownloadCoursePreview,
     downloadModels: List<DownloadModel>,
     downloadedState: DownloadedState,
-    isButtonEnabled: Boolean,
     apiHostUrl: String,
     onDownloadClick: () -> Unit,
     onRemoveClick: () -> Unit,
@@ -309,7 +308,9 @@ private fun CourseItem(
         elevation = 4.dp,
     ) {
         Box {
-            Column {
+            Column(
+                modifier = Modifier.animateContentSize()
+            ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(downloadCoursePreview.image.toImageLink(apiHostUrl))
@@ -377,22 +378,12 @@ private fun CourseItem(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                if (downloadedState == DownloadedState.DOWNLOADING) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(36.dp),
-                                        backgroundColor = Color.LightGray,
-                                        strokeWidth = 2.dp,
-                                        color = MaterialTheme.appColors.primary
-                                    )
-                                } else {
-                                    Icon(
-                                        painter = painterResource(id = coreR.drawable.core_download_waiting),
-                                        contentDescription = stringResource(
-                                            id = R.string.course_accessibility_stop_downloading_course
-                                        ),
-                                        tint = MaterialTheme.appColors.error
-                                    )
-                                }
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(36.dp),
+                                    backgroundColor = Color.LightGray,
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.appColors.primary
+                                )
                                 IconButton(
                                     modifier = Modifier
                                         .size(28.dp)
@@ -402,15 +393,20 @@ private fun CourseItem(
                                     Icon(
                                         imageVector = Icons.Filled.Close,
                                         contentDescription = stringResource(
-                                            id = R.string.course_accessibility_stop_downloading_course
+                                            id = R.string.downloads_accessibility_stop_downloading_course
                                         ),
                                         tint = MaterialTheme.appColors.error
                                     )
                                 }
                             }
                             Spacer(modifier = Modifier.width(8.dp))
+                            val text = if (downloadedState == LOADING_COURSE_STRUCTURE) {
+                                stringResource(R.string.downloads_loading_course_structure)
+                            } else {
+                                stringResource(coreR.string.core_downloading)
+                            }
                             Text(
-                                text = stringResource(coreR.string.course_downloading),
+                                text = text,
                                 style = MaterialTheme.appTypography.titleSmall,
                                 color = MaterialTheme.appColors.textPrimary
                             )
@@ -420,7 +416,6 @@ private fun CourseItem(
                             onClick = {
                                 onDownloadClick()
                             },
-                            enabled = isButtonEnabled,
                             content = {
                                 IconText(
                                     text = stringResource(R.string.downloads_download_course),
@@ -571,7 +566,6 @@ private fun CourseItemPreview() {
             downloadModels = emptyList(),
             apiHostUrl = "",
             downloadedState = DownloadedState.NOT_DOWNLOADED,
-            isButtonEnabled = true,
             onDownloadClick = {},
             onCancelClick = {},
             onRemoveClick = {},

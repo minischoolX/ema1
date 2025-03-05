@@ -32,6 +32,15 @@ class DownloadRepository(
         list.map { it.mapToDomain() }
     }
 
+    suspend fun getCourseStructureFromCache(courseId: String): CourseStructure {
+        val cachedCourseStructure = courseDao.getCourseStructureById(courseId)
+        if (cachedCourseStructure != null) {
+            return cachedCourseStructure.mapToDomain()
+        } else {
+            throw NoCachedDataException()
+        }
+    }
+
     suspend fun getCourseStructure(courseId: String): CourseStructure {
         try {
             val response = api.getCourseStructure(
@@ -43,12 +52,7 @@ class DownloadRepository(
             courseDao.insertCourseStructureEntity(response.mapToRoomEntity())
             return response.mapToDomain()
         } catch (_: Exception) {
-            val cachedCourseStructure = courseDao.getCourseStructureById(courseId)
-            if (cachedCourseStructure != null) {
-                return cachedCourseStructure.mapToDomain()
-            } else {
-                throw NoCachedDataException()
-            }
+            return getCourseStructureFromCache(courseId)
         }
     }
 

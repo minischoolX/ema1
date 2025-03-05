@@ -343,8 +343,10 @@ class CourseOutlineViewModelTest {
     @Test
     fun `getCourseDataInternal success with internet connection`() =
         runTest(UnconfinedTestDispatcher()) {
-            coEvery { interactor.getCourseStructureFlow(any(), any()) } returns flowOf(courseStructure
-            )every { networkConnection.isOnline() } returns true
+            coEvery { interactor.getCourseStructureFlow(any(), any()) } returns flowOf(
+                courseStructure
+            )
+            every { networkConnection.isOnline() } returns true
             coEvery { downloadDao.getAllDataFlow() } returns flow {
                 emit(
                     listOf(

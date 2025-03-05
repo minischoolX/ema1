@@ -188,44 +188,44 @@
     <string name="core_syncing_to_calendar">Syncing to calendar…</string>
     <string name="core_next">Next</string>
 
-    <string name="course_download_queue_title">Downloads</string>
-    <string name="course_download_untitled">(Untitled)</string>
-    <string name="course_download_big_files_confirmation_title">Download</string>
-    <string name="course_download_big_files_confirmation_text">The videos you\'ve selected are larger than 1 GB. Do you want to download these videos?</string>
-    <string name="course_delete_in_process_confirmation" formatted="false">Turning off the switch will stop downloading and delete all downloaded videos for \"%s\"?</string>
-    <string name="course_delete_confirmation" formatted="false">Are you sure you want to delete all video(s) for \"%s\"?</string>
-    <string name="course_delete_download_confirmation_text" formatted="false">Are you sure you want to delete video(s) for \"%s\"?</string>
-    <string name="course_subsection_assignment_info" translatable="false">%1$s - %2$s - %3$d / %4$d</string>
-    <string name="course_download_no_internet_dialog_description">Downloading this content requires an active internet connection. Please connect to the internet and try again.</string>
-    <string name="course_wifi_required">Wi-Fi Required</string>
-    <string name="course_download_wifi_required_dialog_description">Downloading this content requires an active WiFi connection. Please connect to a WiFi network and try again.</string>
-    <string name="course_download_failed">Download Failed</string>
-    <string name="course_download_failed_dialog_description">Unfortunately, this content failed to download. Please try again later or report this issue.</string>
-    <string name="course_download_confirm_dialog_description">Downloading this %1$s of content will save available blocks offline.</string>
-    <string name="course_download_on_cellural">Download on Cellular?</string>
-    <string name="course_download_on_cellural_dialog_description">Downloading this content will use %1$s of cellular data.</string>
-    <string name="course_download_remove_offline_content">Remove Offline Content?</string>
-    <string name="course_download_remove_dialog_description">Removing this content will free up %1$s.</string>
-    <string name="course_download">Download</string>
-    <string name="course_remove">Remove</string>
-    <string name="course_device_storage_full">Device Storage Full</string>
-    <string name="course_download_device_storage_full_dialog_description">Your device does not have enough free space to download this content. Please free up some space and try again.</string>
-    <string name="course_used_free_storage">%1$s used, %2$s free</string>
-    <string name="course_0mb">0MB</string>
-    <string name="course_available_to_download">Available to download</string>
-    <string name="course_no_available_to_download_offline">None of this course’s content is currently available to download offline.</string>
-    <string name="course_download_all">Download all</string>
-    <string name="course_downloaded">Downloaded</string>
-    <string name="course_ready_to_download">Ready to Download</string>
-    <string name="course_you_can_download_course_content_offline">You can download course content offline to learn on the go, without requiring an active internet connection or using mobile data.</string>
-    <string name="course_downloading">Downloading</string>
-    <string name="course_largest_downloads">Largest Downloads</string>
-    <string name="course_remove_all_downloads">Remove all downloads</string>
-    <string name="course_cancel_course_download">Cancel Course Download</string>
-    <string name="course_not_available_offline">This component is not yet available offline</string>
-    <string name="course_explore_other_parts_when_reconnect">Explore other parts of this course or view this when you reconnect.</string>
-    <string name="course_not_downloaded">This component is not downloaded</string>
-    <string name="course_explore_other_parts_when_reconnect_or_download">Explore other parts of this course or download this when you reconnect.</string>
+    <string name="core_download_queue_title">Downloads</string>
+    <string name="core_download_untitled">(Untitled)</string>
+    <string name="core_download_big_files_confirmation_title">Download</string>
+    <string name="core_download_big_files_confirmation_text">The videos you\'ve selected are larger than 1 GB. Do you want to download these videos?</string>
+    <string name="core_delete_in_process_confirmation" formatted="false">Turning off the switch will stop downloading and delete all downloaded videos for \"%s\"?</string>
+    <string name="core_delete_confirmation" formatted="false">Are you sure you want to delete all video(s) for \"%s\"?</string>
+    <string name="core_delete_download_confirmation_text" formatted="false">Are you sure you want to delete video(s) for \"%s\"?</string>
+    <string name="core_subsection_assignment_info" translatable="false">%1$s - %2$s - %3$d / %4$d</string>
+    <string name="core_download_no_internet_dialog_description">Downloading this content requires an active internet connection. Please connect to the internet and try again.</string>
+    <string name="core_wifi_required">Wi-Fi Required</string>
+    <string name="core_download_wifi_required_dialog_description">Downloading this content requires an active WiFi connection. Please connect to a WiFi network and try again.</string>
+    <string name="core_download_failed">Download Failed</string>
+    <string name="core_download_failed_dialog_description">Unfortunately, this content failed to download. Please try again later or report this issue.</string>
+    <string name="core_download_confirm_dialog_description">Downloading this %1$s of content will save available blocks offline.</string>
+    <string name="core_download_on_cellural">Download on Cellular?</string>
+    <string name="core_download_on_cellural_dialog_description">Downloading this content will use %1$s of cellular data.</string>
+    <string name="core_download_remove_offline_content">Remove Offline Content?</string>
+    <string name="core_download_remove_dialog_description">Removing this content will free up %1$s.</string>
+    <string name="core_download">Download</string>
+    <string name="core_remove">Remove</string>
+    <string name="core_device_storage_full">Device Storage Full</string>
+    <string name="core_download_device_storage_full_dialog_description">Your device does not have enough free space to download this content. Please free up some space and try again.</string>
+    <string name="core_used_free_storage">%1$s used, %2$s free</string>
+    <string name="core_0mb">0MB</string>
+    <string name="core_available_to_download">Available to download</string>
+    <string name="core_no_available_to_download_offline">None of this course’s content is currently available to download offline.</string>
+    <string name="core_download_all">Download all</string>
+    <string name="core_downloaded">Downloaded</string>
+    <string name="core_ready_to_download">Ready to Download</string>
+    <string name="core_you_can_download_course_content_offline">You can download course content offline to learn on the go, without requiring an active internet connection or using mobile data.</string>
+    <string name="core_downloading">Downloading</string>
+    <string name="core_largest_downloads">Largest Downloads</string>
+    <string name="core_remove_all_downloads">Remove all downloads</string>
+    <string name="core_cancel_course_download">Cancel Course Download</string>
+    <string name="core_not_available_offline">This component is not yet available offline</string>
+    <string name="core_explore_other_parts_when_reconnect">Explore other parts of this course or view this when you reconnect.</string>
+    <string name="core_not_downloaded">This component is not downloaded</string>
+    <string name="core_explore_other_parts_when_reconnect_or_download">Explore other parts of this course or download this when you reconnect.</string>
 
     <string name="core_authorization">Authorization</string>
     <string name="core_authorization_request">Please enter the system to continue with course enrollment.</string>

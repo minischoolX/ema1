@@ -158,7 +158,7 @@ private fun CourseOfflineUI(
                         if (uiState.progressBarValue != 1f && !uiState.isDownloading && hasInternetConnection) {
                             Spacer(modifier = Modifier.height(20.dp))
                             OpenEdXButton(
-                                text = stringResource(R.string.course_download_all),
+                                text = stringResource(R.string.core_download_all),
                                 backgroundColor = MaterialTheme.appColors.secondaryButtonBackground,
                                 onClick = onDownloadAllClick,
                                 enabled = uiState.isHaveDownloadableBlocks,
@@ -169,7 +169,7 @@ private fun CourseOfflineUI(
                                         MaterialTheme.appColors.textPrimaryVariant
                                     }
                                     IconText(
-                                        text = stringResource(R.string.course_download_all),
+                                        text = stringResource(R.string.core_download_all),
                                         icon = Icons.Outlined.CloudDownload,
                                         color = textColor,
                                         textStyle = MaterialTheme.appTypography.labelLarge
@@ -180,14 +180,14 @@ private fun CourseOfflineUI(
                             Spacer(modifier = Modifier.height(20.dp))
                             OpenEdXOutlinedButton(
                                 modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(R.string.course_cancel_course_download),
+                                text = stringResource(R.string.core_cancel_course_download),
                                 backgroundColor = MaterialTheme.appColors.background,
                                 borderColor = MaterialTheme.appColors.error,
                                 textColor = MaterialTheme.appColors.error,
                                 onClick = onCancelDownloadClick,
                                 content = {
                                     IconText(
-                                        text = stringResource(R.string.course_cancel_course_download),
+                                        text = stringResource(R.string.core_cancel_course_download),
                                         icon = Icons.Rounded.Close,
                                         color = MaterialTheme.appColors.error,
                                         textStyle = MaterialTheme.appTypography.labelLarge
@@ -237,7 +237,7 @@ private fun LargestDownloads(
         Row {
             Text(
                 modifier = Modifier.weight(1f),
-                text = stringResource(R.string.course_largest_downloads),
+                text = stringResource(R.string.core_largest_downloads),
                 style = MaterialTheme.appTypography.titleMedium,
                 color = MaterialTheme.appColors.textDark
             )
@@ -263,14 +263,14 @@ private fun LargestDownloads(
         if (!isDownloading) {
             OpenEdXOutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.course_remove_all_downloads),
+                text = stringResource(R.string.core_remove_all_downloads),
                 backgroundColor = MaterialTheme.appColors.background,
                 borderColor = MaterialTheme.appColors.error,
                 textColor = MaterialTheme.appColors.error,
                 onClick = onDeleteAllClick,
                 content = {
                     IconText(
-                        text = stringResource(R.string.course_remove_all_downloads),
+                        text = stringResource(R.string.core_remove_all_downloads),
                         icon = Icons.Rounded.Delete,
                         color = MaterialTheme.appColors.error,
                         textStyle = MaterialTheme.appTypography.labelLarge
@@ -383,21 +383,21 @@ private fun DownloadProgress(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconText(
-                text = stringResource(R.string.course_downloaded),
+                text = stringResource(R.string.core_downloaded),
                 icon = Icons.Default.CloudDone,
                 color = MaterialTheme.appColors.successGreen,
                 textStyle = MaterialTheme.appTypography.labelLarge
             )
             if (!uiState.isDownloading) {
                 IconText(
-                    text = stringResource(R.string.course_ready_to_download),
+                    text = stringResource(R.string.core_ready_to_download),
                     icon = Icons.Outlined.CloudDownload,
                     color = MaterialTheme.appColors.textDark,
                     textStyle = MaterialTheme.appTypography.labelLarge
                 )
             } else {
                 IconText(
-                    text = stringResource(R.string.course_downloading),
+                    text = stringResource(R.string.core_downloading),
                     icon = Icons.Outlined.CloudDownload,
                     color = MaterialTheme.appColors.textDark,
                     textStyle = MaterialTheme.appTypography.labelLarge
@@ -417,7 +417,7 @@ private fun DownloadProgress(
             )
         } else {
             Text(
-                text = stringResource(R.string.course_you_can_download_course_content_offline),
+                text = stringResource(R.string.core_you_can_download_course_content_offline),
                 style = MaterialTheme.appTypography.labelLarge,
                 color = MaterialTheme.appColors.textDark
             )
@@ -433,20 +433,20 @@ private fun NoDownloadableBlocksProgress(
         modifier = modifier
     ) {
         Text(
-            text = stringResource(R.string.course_0mb),
+            text = stringResource(R.string.core_0mb),
             style = MaterialTheme.appTypography.titleLarge,
             color = MaterialTheme.appColors.textFieldHint
         )
         Spacer(modifier = Modifier.height(4.dp))
         IconText(
-            text = stringResource(R.string.course_available_to_download),
+            text = stringResource(R.string.core_available_to_download),
             icon = Icons.Outlined.CloudDownload,
             color = MaterialTheme.appColors.textFieldHint,
             textStyle = MaterialTheme.appTypography.labelLarge
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = stringResource(R.string.course_no_available_to_download_offline),
+            text = stringResource(R.string.core_no_available_to_download_offline),
             style = MaterialTheme.appTypography.labelLarge,
             color = MaterialTheme.appColors.textDark
         )

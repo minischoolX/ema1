@@ -48,7 +48,9 @@ import org.openedx.foundation.extension.toFileSize
 import org.openedx.foundation.system.PreviewFragmentManager
 import androidx.compose.ui.graphics.Color as ComposeColor
 
-class DownloadConfirmDialogFragment : DialogFragment() {
+class DownloadConfirmDialogFragment : DialogFragment(), DownloadDialog {
+
+    override var listener: DownloadDialogListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,24 +69,24 @@ class DownloadConfirmDialogFragment : DialogFragment() {
                     DownloadConfirmDialogType.CONFIRM -> DownloadDialogResource(
                         title = stringResource(id = R.string.course_confirm_download),
                         description = stringResource(
-                            id = R.string.course_download_confirm_dialog_description,
+                            id = R.string.core_download_confirm_dialog_description,
                             sizeSumString
                         ),
                     )
 
                     DownloadConfirmDialogType.DOWNLOAD_ON_CELLULAR -> DownloadDialogResource(
-                        title = stringResource(id = R.string.course_download_on_cellural),
+                        title = stringResource(id = R.string.core_download_on_cellural),
                         description = stringResource(
-                            id = R.string.course_download_on_cellural_dialog_description,
+                            id = R.string.core_download_on_cellural_dialog_description,
                             sizeSumString
                         ),
                         icon = painterResource(id = R.drawable.core_ic_warning),
                     )
 
                     DownloadConfirmDialogType.REMOVE -> DownloadDialogResource(
-                        title = stringResource(id = R.string.course_download_remove_offline_content),
+                        title = stringResource(id = R.string.core_download_remove_offline_content),
                         description = stringResource(
-                            id = R.string.course_download_remove_dialog_description,
+                            id = R.string.core_download_remove_dialog_description,
                             sizeSumString
                         )
                     )
@@ -104,6 +106,7 @@ class DownloadConfirmDialogFragment : DialogFragment() {
                     },
                     onCancelClick = {
                         dismiss()
+                        listener?.onCancel()
                     }
                 )
             }
@@ -186,14 +189,14 @@ private fun DownloadConfirmDialogView(
             val onClick: () -> Unit
             when (dialogType) {
                 DownloadConfirmDialogType.REMOVE -> {
-                    buttonText = stringResource(id = R.string.course_remove)
+                    buttonText = stringResource(id = R.string.core_remove)
                     buttonIcon = Icons.Rounded.Delete
                     buttonColor = MaterialTheme.appColors.error
                     onClick = onRemoveClick
                 }
 
                 else -> {
-                    buttonText = stringResource(id = R.string.course_download)
+                    buttonText = stringResource(id = R.string.core_download)
                     buttonIcon = Icons.Outlined.CloudDownload
                     buttonColor = MaterialTheme.appColors.secondaryButtonBackground
                     onClick = onConfirmClick

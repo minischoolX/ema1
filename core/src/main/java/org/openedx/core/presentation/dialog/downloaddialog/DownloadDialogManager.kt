@@ -14,6 +14,14 @@ import org.openedx.core.module.db.DownloadModel
 import org.openedx.core.system.StorageManager
 import org.openedx.core.system.connection.NetworkConnection
 
+interface DownloadDialogListener {
+    fun onCancel()
+}
+
+interface DownloadDialog {
+    var listener: DownloadDialogListener?
+}
+
 class DownloadDialogManager(
     private val networkConnection: NetworkConnection,
     private val corePreferences: CorePreferences,
@@ -76,6 +84,12 @@ class DownloadDialogManager(
                     else -> null
                 }
 
+                val dialogListener = object : DownloadDialogListener {
+                    override fun onCancel() {
+                        state.onDismissClick()
+                    }
+                }
+                dialog?.listener = dialogListener
                 dialog?.show(state.fragmentManager, dialog::class.java.simpleName) ?: state.saveDownloadModels()
             }
         }
@@ -89,6 +103,7 @@ class DownloadDialogManager(
         fragmentManager: FragmentManager,
         removeDownloadModels: (blockId: String, courseId: String) -> Unit,
         saveDownloadModels: (blockId: String) -> Unit,
+        onDismissClick: () -> Unit = {},
     ) {
         createDownloadItems(
             subSectionsBlocks = subSectionsBlocks,
@@ -97,7 +112,8 @@ class DownloadDialogManager(
             isBlocksDownloaded = isBlocksDownloaded,
             onlyVideoBlocks = onlyVideoBlocks,
             removeDownloadModels = removeDownloadModels,
-            saveDownloadModels = saveDownloadModels
+            saveDownloadModels = saveDownloadModels,
+            onDismissClick = onDismissClick
         )
     }
 
@@ -190,6 +206,7 @@ class DownloadDialogManager(
         onlyVideoBlocks: Boolean,
         removeDownloadModels: (blockId: String, courseId: String) -> Unit,
         saveDownloadModels: (blockId: String) -> Unit,
+        onDismissClick: () -> Unit = {},
     ) {
         coroutineScope.launch {
             val courseStructure = interactor.getCourseStructure(courseId, false)
@@ -223,7 +240,8 @@ class DownloadDialogManager(
                             )
                         }
                     },
-                    saveDownloadModels = { subSectionsBlocks.forEach { saveDownloadModels(it.id) } }
+                    saveDownloadModels = { subSectionsBlocks.forEach { saveDownloadModels(it.id) } },
+                    onDismissClick = onDismissClick,
                 )
             )
         }

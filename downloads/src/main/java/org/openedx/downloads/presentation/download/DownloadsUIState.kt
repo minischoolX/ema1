@@ -10,5 +10,4 @@ data class DownloadsUIState(
     val downloadCoursePreviews: List<DownloadCoursePreview> = emptyList(),
     val downloadModels: List<DownloadModel> = emptyList(),
     val courseDownloadState: Map<String, DownloadedState> = emptyMap(),
-    val enableButton: Map<String, Boolean> = emptyMap()
 )

@@ -11,5 +11,8 @@ class DownloadInteractor(
 
     suspend fun getAllDownloadModels() = repository.getAllDownloadModels()
 
+    suspend fun getCourseStructureFromCache(courseId: String) =
+        repository.getCourseStructureFromCache(courseId)
+
     suspend fun getCourseStructure(courseId: String) = repository.getCourseStructure(courseId)
 }

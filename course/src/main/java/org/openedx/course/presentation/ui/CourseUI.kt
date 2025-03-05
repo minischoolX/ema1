@@ -246,7 +246,7 @@ fun OfflineQueueCard(
                 .weight(1f)
         ) {
             Text(
-                text = downloadModel.title.ifEmpty { stringResource(id = coreR.string.course_download_untitled) },
+                text = downloadModel.title.ifEmpty { stringResource(id = coreR.string.core_download_untitled) },
                 style = MaterialTheme.appTypography.titleSmall,
                 color = MaterialTheme.appColors.textPrimary,
                 overflow = TextOverflow.Ellipsis,
@@ -832,7 +832,7 @@ fun CourseSubSectionItem(
         if (isAssignmentEnable) {
             val assignmentString =
                 stringResource(
-                    coreR.string.course_subsection_assignment_info,
+                    coreR.string.core_subsection_assignment_info,
                     block.assignmentProgress?.assignmentType ?: "",
                     stringResource(id = coreR.string.core_date_format_assignment_due, due),
                     block.assignmentProgress?.numPointsEarned?.toInt() ?: 0,

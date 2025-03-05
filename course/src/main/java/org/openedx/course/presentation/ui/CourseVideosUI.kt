@@ -312,12 +312,12 @@ private fun CourseVideosUI(
             AlertDialog(
                 title = {
                     Text(
-                        text = stringResource(id = coreR.string.course_download_big_files_confirmation_title)
+                        text = stringResource(id = coreR.string.core_download_big_files_confirmation_title)
                     )
                 },
                 text = {
                     Text(
-                        text = stringResource(id = coreR.string.course_download_big_files_confirmation_text)
+                        text = stringResource(id = coreR.string.core_download_big_files_confirmation_text)
                     )
                 },
                 onDismissRequest = {
@@ -354,9 +354,9 @@ private fun CourseVideosUI(
                 downloadModelsSize?.isAllBlocksDownloadedOrDownloading == true &&
                         downloadModelsSize.remainingCount == 0
             val dialogTextId = if (isDownloadedAllVideos) {
-                coreR.string.course_delete_confirmation
+                coreR.string.core_delete_confirmation
             } else {
-                coreR.string.course_delete_in_process_confirmation
+                coreR.string.core_delete_in_process_confirmation
             }
 
             AlertDialog(
@@ -407,7 +407,7 @@ private fun CourseVideosUI(
                 text = {
                     Text(
                         text = stringResource(
-                            id = coreR.string.course_delete_download_confirmation_text,
+                            id = coreR.string.core_delete_download_confirmation_text,
                             deleteDownloadBlock?.displayName ?: ""
                         )
                     )

@@ -13,5 +13,6 @@ data class DownloadDialogUIState(
     val isDownloadFailed: Boolean,
     val fragmentManager: @RawValue FragmentManager,
     val removeDownloadModels: () -> Unit,
-    val saveDownloadModels: () -> Unit
+    val saveDownloadModels: () -> Unit,
+    val onDismissClick: () -> Unit = {},
 ) : Parcelable

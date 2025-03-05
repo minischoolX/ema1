@@ -65,7 +65,6 @@ abstract class BaseDownloadViewModel(
             updateParentStatus(parentId, children.size, downloadingCount, downloadedCount)
         }
 
-//        downloadingModelsList = models.filter { it.downloadedState.isWaitingOrDownloading }
         _downloadingModelsFlow.emit(models)
     }
 

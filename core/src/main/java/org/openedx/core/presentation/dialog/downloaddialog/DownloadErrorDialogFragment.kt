@@ -41,7 +41,9 @@ import org.openedx.core.ui.theme.appTypography
 import org.openedx.foundation.extension.parcelable
 import org.openedx.foundation.system.PreviewFragmentManager
 
-class DownloadErrorDialogFragment : DialogFragment() {
+class DownloadErrorDialogFragment : DialogFragment(), DownloadDialog {
+
+    override var listener: DownloadDialogListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,19 +60,19 @@ class DownloadErrorDialogFragment : DialogFragment() {
                 val downloadDialogResource = when (dialogType) {
                     DownloadErrorDialogType.NO_CONNECTION -> DownloadDialogResource(
                         title = stringResource(id = R.string.core_no_internet_connection),
-                        description = stringResource(id = R.string.course_download_no_internet_dialog_description),
+                        description = stringResource(id = R.string.core_download_no_internet_dialog_description),
                         icon = painterResource(id = R.drawable.core_ic_error),
                     )
 
                     DownloadErrorDialogType.WIFI_REQUIRED -> DownloadDialogResource(
-                        title = stringResource(id = R.string.course_wifi_required),
-                        description = stringResource(id = R.string.course_download_wifi_required_dialog_description),
+                        title = stringResource(id = R.string.core_wifi_required),
+                        description = stringResource(id = R.string.core_download_wifi_required_dialog_description),
                         icon = painterResource(id = R.drawable.core_ic_error),
                     )
 
                     DownloadErrorDialogType.DOWNLOAD_FAILED -> DownloadDialogResource(
-                        title = stringResource(id = R.string.course_download_failed),
-                        description = stringResource(id = R.string.course_download_failed_dialog_description),
+                        title = stringResource(id = R.string.core_download_failed),
+                        description = stringResource(id = R.string.core_download_failed_dialog_description),
                         icon = painterResource(id = R.drawable.core_ic_error),
                     )
                 }
@@ -85,6 +87,7 @@ class DownloadErrorDialogFragment : DialogFragment() {
                     },
                     onCancelClick = {
                         dismiss()
+                        listener?.onCancel()
                     }
                 )
             }

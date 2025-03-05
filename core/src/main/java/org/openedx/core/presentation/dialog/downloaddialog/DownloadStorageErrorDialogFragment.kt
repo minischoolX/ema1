@@ -56,7 +56,9 @@ import org.openedx.foundation.extension.parcelable
 import org.openedx.foundation.extension.toFileSize
 import org.openedx.foundation.system.PreviewFragmentManager
 
-class DownloadStorageErrorDialogFragment : DialogFragment() {
+class DownloadStorageErrorDialogFragment : DialogFragment(), DownloadDialog {
+
+    override var listener: DownloadDialogListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,8 +71,8 @@ class DownloadStorageErrorDialogFragment : DialogFragment() {
             OpenEdXTheme {
                 val uiState = requireArguments().parcelable<DownloadDialogUIState>(ARG_UI_STATE) ?: return@OpenEdXTheme
                 val downloadDialogResource = DownloadDialogResource(
-                    title = stringResource(id = R.string.course_device_storage_full),
-                    description = stringResource(id = R.string.course_download_device_storage_full_dialog_description),
+                    title = stringResource(id = R.string.core_device_storage_full),
+                    description = stringResource(id = R.string.core_download_device_storage_full_dialog_description),
                     icon = painterResource(id = R.drawable.core_ic_error),
                 )
 
@@ -79,6 +81,7 @@ class DownloadStorageErrorDialogFragment : DialogFragment() {
                     downloadDialogResource = downloadDialogResource,
                     onCancelClick = {
                         dismiss()
+                        listener?.onCancel()
                     }
                 )
             }
@@ -241,7 +244,7 @@ private fun StorageBar(
         ) {
             Text(
                 text = stringResource(
-                    R.string.course_used_free_storage,
+                    R.string.core_used_free_storage,
                     usedSpace.toFileSize(1, false),
                     freeSpace.toFileSize(1, false)
                 ),

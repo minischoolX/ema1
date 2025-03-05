@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -73,6 +74,8 @@ class DownloadsViewModel(
     val hasInternetConnection: Boolean
         get() = networkConnection.isOnline()
 
+    private var downloadJobs = mutableMapOf<String, Job>()
+
     init {
         fetchDownloads(false)
 
@@ -87,12 +90,21 @@ class DownloadsViewModel(
         viewModelScope.launch {
             downloadModelsStatusFlow.collect { statusMap ->
                 val downloadingCourseState = blockIdsByCourseId
-                    .mapValues { (_, blockIds) ->
+                    .mapValues { (courseId, blockIds) ->
+                        val currentCourseState = uiState.value.courseDownloadState[courseId]
                         val blockStates = blockIds.mapNotNull { statusMap[it] }
-                        if (blockStates.isEmpty()) {
+                        val courseDownloadState = if (blockStates.isEmpty()) {
                             DownloadedState.NOT_DOWNLOADED
                         } else {
                             determineCourseState(blockStates)
+                        }
+                        val isLoadingCourseStructure =
+                            currentCourseState == DownloadedState.LOADING_COURSE_STRUCTURE &&
+                                    courseDownloadState == DownloadedState.NOT_DOWNLOADED
+                        if (isLoadingCourseStructure) {
+                            DownloadedState.LOADING_COURSE_STRUCTURE
+                        } else {
+                            courseDownloadState
                         }
                     }
 
@@ -146,7 +158,11 @@ class DownloadsViewModel(
                 }
                 .collect { downloadCoursePreviews ->
                     downloadCoursePreviews.map {
-                        initBlocks(it.id)
+                        try {
+                            initBlocks(it.id, true)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                     val subSectionsBlocks =
                         allBlocks.values.filter { it.type == BlockType.SEQUENTIAL }
@@ -157,7 +173,6 @@ class DownloadsViewModel(
                     _uiState.update { state ->
                         state.copy(
                             downloadCoursePreviews = downloadCoursePreviews,
-                            enableButton = downloadCoursePreviews.associate { it.id to true }
                         )
                     }
                 }
@@ -178,18 +193,20 @@ class DownloadsViewModel(
     }
 
     fun downloadCourse(fragmentManager: FragmentManager, courseId: String) {
-        viewModelScope.launch {
+        downloadJobs[courseId] = viewModelScope.launch {
             try {
                 _uiState.update { state ->
                     state.copy(
-                        enableButton = state.enableButton.toMap() + (courseId to false)
+                        courseDownloadState = state.courseDownloadState.toMap() +
+                                (courseId to DownloadedState.LOADING_COURSE_STRUCTURE)
                     )
                 }
                 downloadAllBlocks(fragmentManager, courseId)
             } catch (e: Exception) {
                 _uiState.update { state ->
                     state.copy(
-                        enableButton = state.enableButton.toMap() + (courseId to true)
+                        courseDownloadState = state.courseDownloadState.toMap() +
+                                (courseId to DownloadedState.NOT_DOWNLOADED)
                     )
                 }
                 if (e.isInternetError()) {
@@ -211,6 +228,13 @@ class DownloadsViewModel(
 
     fun cancelDownloading(courseId: String) {
         viewModelScope.launch {
+            _uiState.update { state ->
+                state.copy(
+                    courseDownloadState = state.courseDownloadState.toMap() +
+                            (courseId to DownloadedState.NOT_DOWNLOADED)
+                )
+            }
+            downloadJobs[courseId]?.cancel()
             interactor.getAllDownloadModels()
                 .filter { it.courseId == courseId && it.downloadedState.isWaitingOrDownloading }
                 .forEach { removeBlockDownloadModel(it.id) }
@@ -238,48 +262,51 @@ class DownloadsViewModel(
         }
     }
 
-    private suspend fun initBlocks(courseId: String): CourseStructure {
-        val courseStructure = interactor.getCourseStructure(courseId)
+    private suspend fun initBlocks(courseId: String, cached: Boolean): CourseStructure {
+        val courseStructure = if (cached) {
+            interactor.getCourseStructureFromCache(courseId)
+        } else {
+            interactor.getCourseStructure(courseId)
+        }
         blockIdsByCourseId[courseStructure.id] = courseStructure.blockData.map { it.id }
         addBlocks(courseStructure.blockData)
         return courseStructure
     }
 
     private suspend fun downloadAllBlocks(fragmentManager: FragmentManager, courseId: String) {
-        try {
-            val courseStructure = initBlocks(courseId)
-            val downloadModels = interactor.getDownloadModels()
-                .map { list -> list.filter { it.courseId in courseId } }
-                .first()
-            val subSectionsBlocks = allBlocks.values.filter { it.type == BlockType.SEQUENTIAL }
-            val notDownloadedSubSectionBlocks = subSectionsBlocks.mapNotNull { subSection ->
-                addDownloadableChildrenForSequentialBlock(subSection)
-                val verticalBlocks = allBlocks.values.filter { it.id in subSection.descendants }
-                val notDownloadedBlocks = courseStructure.blockData.filter { block ->
-                    block.id in verticalBlocks.flatMap { it.descendants } &&
-                            block.isDownloadable &&
-                            downloadModels.none { it.id == block.id }
-                }
-                if (notDownloadedBlocks.isNotEmpty()) subSection else null
+        val courseStructure = initBlocks(courseId, false)
+        val downloadModels = interactor.getDownloadModels()
+            .map { list -> list.filter { it.courseId in courseId } }
+            .first()
+        val subSectionsBlocks = allBlocks.values.filter { it.type == BlockType.SEQUENTIAL }
+        val notDownloadedSubSectionBlocks = subSectionsBlocks.mapNotNull { subSection ->
+            addDownloadableChildrenForSequentialBlock(subSection)
+            val verticalBlocks = allBlocks.values.filter { it.id in subSection.descendants }
+            val notDownloadedBlocks = courseStructure.blockData.filter { block ->
+                block.id in verticalBlocks.flatMap { it.descendants } &&
+                        block.isDownloadable &&
+                        downloadModels.none { it.id == block.id }
             }
-
-            downloadDialogManager.showPopup(
-                subSectionsBlocks = notDownloadedSubSectionBlocks,
-                courseId = courseId,
-                isBlocksDownloaded = false,
-                fragmentManager = fragmentManager,
-                removeDownloadModels = ::removeDownloadModels,
-                saveDownloadModels = { blockId ->
-                    saveDownloadModels(fileUtil.getExternalAppDir().path, courseId, blockId)
-                }
-            )
-        } finally {
-            _uiState.update { state ->
-                state.copy(
-                    enableButton = state.enableButton.toMap() + (courseId to true)
-                )
-            }
+            if (notDownloadedBlocks.isNotEmpty()) subSection else null
         }
+        downloadDialogManager.showPopup(
+            subSectionsBlocks = notDownloadedSubSectionBlocks,
+            courseId = courseId,
+            isBlocksDownloaded = false,
+            fragmentManager = fragmentManager,
+            removeDownloadModels = ::removeDownloadModels,
+            saveDownloadModels = { blockId ->
+                saveDownloadModels(fileUtil.getExternalAppDir().path, courseId, blockId)
+            },
+            onDismissClick = {
+                _uiState.update { state ->
+                    state.copy(
+                        courseDownloadState = state.courseDownloadState.toMap() +
+                                (courseId to DownloadedState.NOT_DOWNLOADED)
+                    )
+                }
+            }
+        )
     }
 }
 

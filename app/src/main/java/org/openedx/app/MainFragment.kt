@@ -40,6 +40,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         }
     }
 
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -124,7 +125,12 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         val initialMenuId = when (openTabArg) {
             HomeTab.LEARN.name, HomeTab.PROGRAMS.name -> R.id.fragmentLearn
             HomeTab.DISCOVER.name -> R.id.fragmentDiscover
-            HomeTab.DOWNLOADS.name -> if (viewModel.isDownloadsFragmentEnabled) R.id.fragmentDownloads else R.id.fragmentLearn
+            HomeTab.DOWNLOADS.name -> if (viewModel.isDownloadsFragmentEnabled) {
+                R.id.fragmentDownloads
+            } else {
+                R.id.fragmentLearn
+            }
+
             HomeTab.PROFILE.name -> R.id.fragmentProfile
             else -> R.id.fragmentLearn
         }
@@ -133,7 +139,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         requireArguments().remove(ARG_OPEN_TAB)
     }
 
-    @Suppress("MagicNumber")
     private fun initViewPager(tabList: List<Pair<Int, Fragment>>) {
         binding.viewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
         binding.viewPager.offscreenPageLimit = tabList.size

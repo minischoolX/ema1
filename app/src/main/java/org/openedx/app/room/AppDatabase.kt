@@ -34,7 +34,6 @@ const val DATABASE_NAME = "OpenEdX_db"
         CourseCalendarEventEntity::class,
         CourseCalendarStateEntity::class,
         DownloadCoursePreview::class,
-        CourseCalendarStateEntity::class,
         CourseEnrollmentDetailsEntity::class
     ],
     autoMigrations = [

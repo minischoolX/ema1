@@ -155,7 +155,7 @@ private fun DownloadQueueScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 56.dp),
-                        text = stringResource(id = coreR.string.course_download_queue_title),
+                        text = stringResource(id = coreR.string.core_download_queue_title),
                         color = MaterialTheme.appColors.textPrimary,
                         style = MaterialTheme.appTypography.titleMedium,
                         maxLines = 1,
