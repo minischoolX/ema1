@@ -29,6 +29,9 @@ import org.openedx.core.module.db.DownloadedState
 import org.openedx.core.module.download.BaseDownloadViewModel
 import org.openedx.core.module.download.DownloadHelper
 import org.openedx.core.presentation.CoreAnalytics
+import org.openedx.core.presentation.DownloadsAnalytics
+import org.openedx.core.presentation.DownloadsAnalyticsEvent
+import org.openedx.core.presentation.DownloadsAnalyticsKey
 import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogItem
 import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.system.connection.NetworkConnection
@@ -47,6 +50,7 @@ class DownloadsViewModel(
     private val resourceManager: ResourceManager,
     private val fileUtil: FileUtil,
     private val config: Config,
+    private val analytics: DownloadsAnalytics,
     preferencesManager: CorePreferences,
     coreAnalytics: CoreAnalytics,
     downloadDao: DownloadDao,
@@ -193,6 +197,7 @@ class DownloadsViewModel(
     }
 
     fun downloadCourse(fragmentManager: FragmentManager, courseId: String) {
+        logEvent(DownloadsAnalyticsEvent.DOWNLOAD_COURSE_CLICKED)
         downloadJobs[courseId] = viewModelScope.launch {
             try {
                 _uiState.update { state ->
@@ -203,6 +208,7 @@ class DownloadsViewModel(
                 }
                 downloadAllBlocks(fragmentManager, courseId)
             } catch (e: Exception) {
+                logEvent(DownloadsAnalyticsEvent.DOWNLOAD_ERROR)
                 _uiState.update { state ->
                     state.copy(
                         courseDownloadState = state.courseDownloadState.toMap() +
@@ -227,6 +233,7 @@ class DownloadsViewModel(
     }
 
     fun cancelDownloading(courseId: String) {
+        logEvent(DownloadsAnalyticsEvent.CANCEL_DOWNLOAD_CLICKED)
         viewModelScope.launch {
             _uiState.update { state ->
                 state.copy(
@@ -242,6 +249,7 @@ class DownloadsViewModel(
     }
 
     fun removeDownloads(fragmentManager: FragmentManager, courseId: String) {
+        logEvent(DownloadsAnalyticsEvent.REMOVE_DOWNLOAD_CLICKED)
         viewModelScope.launch {
             val downloadModels =
                 interactor.getDownloadModels().first().filter { it.courseId == courseId }
@@ -257,6 +265,7 @@ class DownloadsViewModel(
                 fragmentManager = fragmentManager,
                 removeDownloadModels = {
                     downloadModels.forEach { super.removeBlockDownloadModel(it.id) }
+                    logEvent(DownloadsAnalyticsEvent.DOWNLOAD_REMOVED)
                 }
             )
         }
@@ -299,12 +308,25 @@ class DownloadsViewModel(
                 saveDownloadModels(fileUtil.getExternalAppDir().path, courseId, blockId)
             },
             onDismissClick = {
+                logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CANCELLED)
                 _uiState.update { state ->
                     state.copy(
                         courseDownloadState = state.courseDownloadState.toMap() +
                                 (courseId to DownloadedState.NOT_DOWNLOADED)
                     )
                 }
+            },
+            onConfirmClick = {
+                logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CONFIRMED)
+            }
+        )
+    }
+
+    fun logEvent(event: DownloadsAnalyticsEvent) {
+        analytics.logEvent(
+            event = event.eventName,
+            params = buildMap {
+                put(DownloadsAnalyticsKey.NAME.key, event.biValue)
             }
         )
     }

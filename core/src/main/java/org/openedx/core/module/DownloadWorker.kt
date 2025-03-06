@@ -23,6 +23,9 @@ import org.openedx.core.module.download.AbstractDownloader.DownloadResult
 import org.openedx.core.module.download.CurrentProgress
 import org.openedx.core.module.download.DownloadHelper
 import org.openedx.core.module.download.FileDownloader
+import org.openedx.core.presentation.DownloadsAnalytics
+import org.openedx.core.presentation.DownloadsAnalyticsEvent
+import org.openedx.core.presentation.DownloadsAnalyticsKey
 import org.openedx.core.system.notifier.DownloadFailed
 import org.openedx.core.system.notifier.DownloadNotifier
 import org.openedx.core.system.notifier.DownloadProgressChanged
@@ -33,12 +36,14 @@ class DownloadWorker(
     parameters: WorkerParameters,
 ) : CoroutineWorker(context, parameters), CoroutineScope {
 
-    private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
 
     private val notifier by inject<DownloadNotifier>(DownloadNotifier::class.java)
     private val downloadDao: DownloadDao by inject(DownloadDao::class.java)
     private val downloadHelper: DownloadHelper by inject(DownloadHelper::class.java)
+    private val analytics: DownloadsAnalytics by inject(DownloadsAnalytics::class.java)
 
     private var downloadEnqueue = listOf<DownloadModel>()
     private var downloadError = mutableListOf<DownloadModel>()
@@ -134,9 +139,11 @@ class DownloadWorker(
                     )
                 )
             )
+            logEvent(DownloadsAnalyticsEvent.DOWNLOAD_STARTED)
             val downloadResult = fileDownloader.download(downloadTask.url, downloadTask.path)
             when (downloadResult) {
                 DownloadResult.SUCCESS -> {
+                    logEvent(DownloadsAnalyticsEvent.DOWNLOAD_COMPLETED)
                     val updatedModel = downloadHelper.updateDownloadStatus(downloadTask)
                     if (updatedModel == null) {
                         downloadDao.removeDownloadModel(downloadTask.id)
@@ -149,10 +156,12 @@ class DownloadWorker(
                 }
 
                 DownloadResult.CANCELED -> {
+                    logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CANCELLED)
                     downloadDao.removeDownloadModel(downloadTask.id)
                 }
 
                 DownloadResult.ERROR -> {
+                    logEvent(DownloadsAnalyticsEvent.DOWNLOAD_ERROR)
                     downloadDao.removeDownloadModel(downloadTask.id)
                     downloadError.add(downloadTask)
                 }
@@ -171,6 +180,15 @@ class DownloadWorker(
         val notificationChannel =
             NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW)
         notificationManager.createNotificationChannel(notificationChannel)
+    }
+
+    fun logEvent(event: DownloadsAnalyticsEvent) {
+        analytics.logEvent(
+            event = event.eventName,
+            params = buildMap {
+                put(DownloadsAnalyticsKey.NAME.key, event.biValue)
+            }
+        )
     }
 
     companion object {

@@ -15,7 +15,8 @@ import org.openedx.core.system.StorageManager
 import org.openedx.core.system.connection.NetworkConnection
 
 interface DownloadDialogListener {
-    fun onCancel()
+    fun onCancelClick()
+    fun onConfirmClick()
 }
 
 interface DownloadDialog {
@@ -85,12 +86,21 @@ class DownloadDialogManager(
                 }
 
                 val dialogListener = object : DownloadDialogListener {
-                    override fun onCancel() {
+                    override fun onCancelClick() {
                         state.onDismissClick()
                     }
+
+                    override fun onConfirmClick() {
+                        state.onConfirmClick()
+                    }
                 }
-                dialog?.listener = dialogListener
-                dialog?.show(state.fragmentManager, dialog::class.java.simpleName) ?: state.saveDownloadModels()
+                if (dialog != null) {
+                    dialog.listener = dialogListener
+                    dialog.show(state.fragmentManager, dialog::class.java.simpleName)
+                } else {
+                    state.onConfirmClick()
+                    state.saveDownloadModels()
+                }
             }
         }
     }
@@ -104,6 +114,7 @@ class DownloadDialogManager(
         removeDownloadModels: (blockId: String, courseId: String) -> Unit,
         saveDownloadModels: (blockId: String) -> Unit,
         onDismissClick: () -> Unit = {},
+        onConfirmClick: () -> Unit = {},
     ) {
         createDownloadItems(
             subSectionsBlocks = subSectionsBlocks,
@@ -113,7 +124,8 @@ class DownloadDialogManager(
             onlyVideoBlocks = onlyVideoBlocks,
             removeDownloadModels = removeDownloadModels,
             saveDownloadModels = saveDownloadModels,
-            onDismissClick = onDismissClick
+            onDismissClick = onDismissClick,
+            onConfirmClick = onConfirmClick
         )
     }
 
@@ -159,10 +171,12 @@ class DownloadDialogManager(
 
             courseIds.forEach { courseId ->
                 val courseStructure = interactor.getCourseStructureFromCache(courseId)
-                val allSubSectionBlocks = courseStructure.blockData.filter { it.type == BlockType.SEQUENTIAL }
+                val allSubSectionBlocks =
+                    courseStructure.blockData.filter { it.type == BlockType.SEQUENTIAL }
 
                 allSubSectionBlocks.forEach { subSectionBlock ->
-                    val verticalBlocks = courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
+                    val verticalBlocks =
+                        courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
                     val blocks = courseStructure.blockData.filter {
                         it.id in verticalBlocks.flatMap { it.descendants } && it.id in blockIds
                     }
@@ -207,13 +221,15 @@ class DownloadDialogManager(
         removeDownloadModels: (blockId: String, courseId: String) -> Unit,
         saveDownloadModels: (blockId: String) -> Unit,
         onDismissClick: () -> Unit = {},
+        onConfirmClick: () -> Unit = {},
     ) {
         coroutineScope.launch {
             val courseStructure = interactor.getCourseStructure(courseId, false)
             val downloadModelIds = interactor.getAllDownloadModels().map { it.id }
 
             val downloadDialogItems = subSectionsBlocks.mapNotNull { subSectionBlock ->
-                val verticalBlocks = courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
+                val verticalBlocks =
+                    courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
                 val blocks = verticalBlocks.flatMap { verticalBlock ->
                     courseStructure.blockData.filter {
                         it.id in verticalBlock.descendants &&
@@ -222,7 +238,10 @@ class DownloadDialogManager(
                     }
                 }
                 val size = blocks.sumOf { it.getFileSize() }
-                if (size > 0) DownloadDialogItem(title = subSectionBlock.displayName, size = size) else null
+                if (size > 0) DownloadDialogItem(
+                    title = subSectionBlock.displayName,
+                    size = size
+                ) else null
             }
 
             uiState.emit(
@@ -242,6 +261,7 @@ class DownloadDialogManager(
                     },
                     saveDownloadModels = { subSectionsBlocks.forEach { saveDownloadModels(it.id) } },
                     onDismissClick = onDismissClick,
+                    onConfirmClick = onConfirmClick,
                 )
             )
         }

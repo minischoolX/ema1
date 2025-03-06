@@ -81,7 +81,7 @@ class DownloadStorageErrorDialogFragment : DialogFragment(), DownloadDialog {
                     downloadDialogResource = downloadDialogResource,
                     onCancelClick = {
                         dismiss()
-                        listener?.onCancel()
+                        listener?.onCancelClick()
                     }
                 )
             }

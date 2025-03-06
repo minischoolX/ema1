@@ -87,7 +87,7 @@ class DownloadErrorDialogFragment : DialogFragment(), DownloadDialog {
                     },
                     onCancelClick = {
                         dismiss()
-                        listener?.onCancel()
+                        listener?.onCancelClick()
                     }
                 )
             }

@@ -15,4 +15,5 @@ data class DownloadDialogUIState(
     val removeDownloadModels: () -> Unit,
     val saveDownloadModels: () -> Unit,
     val onDismissClick: () -> Unit = {},
+    val onConfirmClick: () -> Unit = {},
 ) : Parcelable

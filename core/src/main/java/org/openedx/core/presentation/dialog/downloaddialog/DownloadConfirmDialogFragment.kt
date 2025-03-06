@@ -99,6 +99,7 @@ class DownloadConfirmDialogFragment : DialogFragment(), DownloadDialog {
                     onConfirmClick = {
                         uiState.saveDownloadModels()
                         dismiss()
+                        listener?.onConfirmClick()
                     },
                     onRemoveClick = {
                         uiState.removeDownloadModels()
@@ -106,7 +107,7 @@ class DownloadConfirmDialogFragment : DialogFragment(), DownloadDialog {
                     },
                     onCancelClick = {
                         dismiss()
-                        listener?.onCancel()
+                        listener?.onCancelClick()
                     }
                 )
             }

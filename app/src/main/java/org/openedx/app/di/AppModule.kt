@@ -40,6 +40,7 @@ import org.openedx.core.module.TranscriptManager
 import org.openedx.core.module.download.DownloadHelper
 import org.openedx.core.module.download.FileDownloader
 import org.openedx.core.presentation.CoreAnalytics
+import org.openedx.core.presentation.DownloadsAnalytics
 import org.openedx.core.presentation.dialog.appreview.AppReviewAnalytics
 import org.openedx.core.presentation.dialog.appreview.AppReviewManager
 import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
@@ -207,6 +208,7 @@ val appModule = module {
     single<DiscussionAnalytics> { get<AnalyticsManager>() }
     single<ProfileAnalytics> { get<AnalyticsManager>() }
     single<WhatsNewAnalytics> { get<AnalyticsManager>() }
+    single<DownloadsAnalytics> { get<AnalyticsManager>() }
 
     factory { AgreementProvider(get(), get()) }
     factory { FacebookAuthHelper() }

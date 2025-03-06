@@ -522,7 +522,8 @@ val screenModule = module {
             workerController = get(),
             downloadHelper = get(),
             downloadDialogManager = get(),
-            fileUtil = get()
+            fileUtil = get(),
+            analytics = get()
         )
     }
 }
