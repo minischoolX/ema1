@@ -238,10 +238,14 @@ class DownloadDialogManager(
                     }
                 }
                 val size = blocks.sumOf { it.getFileSize() }
-                if (size > 0) DownloadDialogItem(
-                    title = subSectionBlock.displayName,
-                    size = size
-                ) else null
+                if (size > 0) {
+                    DownloadDialogItem(
+                        title = subSectionBlock.displayName,
+                        size = size
+                    )
+                } else {
+                    null
+                }
             }
 
             uiState.emit(
