@@ -35,6 +35,8 @@ import org.openedx.core.presentation.DownloadsAnalyticsKey
 import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogItem
 import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.system.connection.NetworkConnection
+import org.openedx.core.system.notifier.CourseDashboardUpdate
+import org.openedx.core.system.notifier.DiscoveryNotifier
 import org.openedx.downloads.domain.interactor.DownloadInteractor
 import org.openedx.downloads.presentation.DownloadsRouter
 import org.openedx.foundation.extension.isInternetError
@@ -51,6 +53,8 @@ class DownloadsViewModel(
     private val fileUtil: FileUtil,
     private val config: Config,
     private val analytics: DownloadsAnalytics,
+    private val discoveryNotifier: DiscoveryNotifier,
+    private val router: DownloadsRouter,
     preferencesManager: CorePreferences,
     coreAnalytics: CoreAnalytics,
     downloadDao: DownloadDao,
@@ -82,6 +86,14 @@ class DownloadsViewModel(
 
     init {
         fetchDownloads(false)
+
+        viewModelScope.launch {
+            discoveryNotifier.notifier.collect {
+                if (it is CourseDashboardUpdate) {
+                    fetchDownloads(true)
+                }
+            }
+        }
 
         viewModelScope.launch {
             downloadingModelsFlow.collect { downloadModels ->
@@ -322,6 +334,19 @@ class DownloadsViewModel(
         )
     }
 
+    fun navigateToCourseOutline(
+        fm: FragmentManager,
+        courseId: String
+    ) {
+        val coursePreview =
+            _uiState.value.downloadCoursePreviews.find { it.id == courseId } ?: return
+        router.navigateToCourseOutline(
+            fm = fm,
+            courseId = coursePreview.id,
+            courseTitle = coursePreview.name,
+        )
+    }
+
     fun logEvent(event: DownloadsAnalyticsEvent) {
         analytics.logEvent(
             event = event.eventName,
@@ -335,6 +360,7 @@ class DownloadsViewModel(
 interface DownloadsViewActions {
     object OpenSettings : DownloadsViewActions
     object SwipeRefresh : DownloadsViewActions
+    data class OpenCourse(val courseId: String) : DownloadsViewActions
     data class DownloadCourse(val courseId: String) : DownloadsViewActions
     data class CancelDownloading(val courseId: String) : DownloadsViewActions
     data class RemoveDownloads(val courseId: String) : DownloadsViewActions

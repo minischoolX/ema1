@@ -14,10 +14,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Before
@@ -45,6 +43,7 @@ import org.openedx.core.presentation.CoreAnalytics
 import org.openedx.core.presentation.DownloadsAnalytics
 import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.system.connection.NetworkConnection
+import org.openedx.core.system.notifier.DiscoveryNotifier
 import org.openedx.downloads.domain.interactor.DownloadInteractor
 import org.openedx.downloads.presentation.DownloadsRouter
 import org.openedx.downloads.presentation.download.DownloadsViewModel
@@ -75,6 +74,8 @@ class DownloadsViewModelTest {
     private val downloadDao = mockk<DownloadDao>(relaxed = true)
     private val workerController = mockk<DownloadWorkerController>(relaxed = true)
     private val downloadHelper = mockk<DownloadHelper>(relaxed = true)
+    private val router = mockk<DownloadsRouter>(relaxed = true)
+    private val discoveryNotifier = mockk<DiscoveryNotifier>(relaxed = true)
 
     private val noInternet = "No connection"
     private val unknownError = "Unknown error"
@@ -207,11 +208,6 @@ class DownloadsViewModelTest {
         )
     }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
     @Test
     fun `onSettingsClick should navigate to settings`() = runTest {
         val viewModel = DownloadsViewModel(
@@ -223,6 +219,8 @@ class DownloadsViewModelTest {
             fileUtil,
             config,
             analytics,
+            discoveryNotifier,
+            router,
             preferencesManager,
             coreAnalytics,
             downloadDao,
@@ -247,6 +245,8 @@ class DownloadsViewModelTest {
             fileUtil,
             config,
             analytics,
+            discoveryNotifier,
+            router,
             preferencesManager,
             coreAnalytics,
             downloadDao,
@@ -280,6 +280,8 @@ class DownloadsViewModelTest {
                 fileUtil,
                 config,
                 analytics,
+                discoveryNotifier,
+                router,
                 preferencesManager,
                 coreAnalytics,
                 downloadDao,
@@ -316,6 +318,8 @@ class DownloadsViewModelTest {
             fileUtil,
             config,
             analytics,
+            discoveryNotifier,
+            router,
             preferencesManager,
             coreAnalytics,
             downloadDao,
@@ -353,6 +357,8 @@ class DownloadsViewModelTest {
             fileUtil,
             config,
             analytics,
+            discoveryNotifier,
+            router,
             preferencesManager,
             coreAnalytics,
             downloadDao,

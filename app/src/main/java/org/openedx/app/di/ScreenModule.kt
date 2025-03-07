@@ -523,7 +523,9 @@ val screenModule = module {
             downloadHelper = get(),
             downloadDialogManager = get(),
             fileUtil = get(),
-            analytics = get()
+            analytics = get(),
+            discoveryNotifier = get(),
+            router = get()
         )
     }
 }

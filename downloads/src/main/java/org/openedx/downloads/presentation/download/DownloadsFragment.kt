@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
@@ -128,6 +130,13 @@ class DownloadsFragment : Fragment() {
                                 viewModel.refreshData()
                             }
 
+                            is DownloadsViewActions.OpenCourse -> {
+                                viewModel.navigateToCourseOutline(
+                                    fm = requireActivity().supportFragmentManager,
+                                    courseId = action.courseId
+                                )
+                            }
+
                             is DownloadsViewActions.DownloadCourse -> {
                                 viewModel.downloadCourse(
                                     requireActivity().supportFragmentManager,
@@ -211,7 +220,11 @@ private fun DownloadsScreen(
                         CircularProgressIndicator(color = MaterialTheme.appColors.primary)
                     }
                 } else if (uiState.downloadCoursePreviews.isEmpty()) {
-                    EmptyState()
+                    EmptyState(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    )
                 } else {
                     Box(
                         modifier = Modifier
@@ -236,6 +249,9 @@ private fun DownloadsScreen(
                                     downloadModels = downloadModels,
                                     downloadedState = downloadState,
                                     apiHostUrl = apiHostUrl,
+                                    onCourseClick = {
+                                        onAction(DownloadsViewActions.OpenCourse(item.id))
+                                    },
                                     onDownloadClick = {
                                         onAction(DownloadsViewActions.DownloadCourse(item.id))
                                     },
@@ -278,6 +294,7 @@ private fun DownloadsScreen(
     )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun CourseItem(
     modifier: Modifier = Modifier,
@@ -285,6 +302,7 @@ private fun CourseItem(
     downloadModels: List<DownloadModel>,
     downloadedState: DownloadedState,
     apiHostUrl: String,
+    onCourseClick: () -> Unit,
     onDownloadClick: () -> Unit,
     onRemoveClick: () -> Unit,
     onCancelClick: () -> Unit
@@ -306,6 +324,7 @@ private fun CourseItem(
         backgroundColor = MaterialTheme.appColors.background,
         shape = MaterialTheme.appShapes.courseImageShape,
         elevation = 4.dp,
+        onClick = onCourseClick
     ) {
         Box {
             Column(
@@ -507,7 +526,7 @@ private fun EmptyState(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -566,6 +585,7 @@ private fun CourseItemPreview() {
             downloadModels = emptyList(),
             apiHostUrl = "",
             downloadedState = DownloadedState.NOT_DOWNLOADED,
+            onCourseClick = {},
             onDownloadClick = {},
             onCancelClick = {},
             onRemoveClick = {},
