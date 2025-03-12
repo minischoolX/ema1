@@ -23,9 +23,9 @@ class DownloadRepository(
         val username = corePreferences.user?.username ?: ""
         val response = api.getDownloadCoursesPreview(username)
         val downloadCoursesPreview = response.map { it.mapToDomain() }
+        emit(downloadCoursesPreview)
         val downloadCoursesPreviewEntity = response.map { it.mapToRoomEntity() }
         dao.insertDownloadCoursePreview(downloadCoursesPreviewEntity)
-        emit(downloadCoursesPreview)
     }
 
     fun getDownloadModels() = dao.getAllDataFlow().map { list ->

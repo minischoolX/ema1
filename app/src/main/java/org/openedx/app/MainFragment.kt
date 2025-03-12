@@ -40,10 +40,15 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         }
     }
 
-    @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        handleArguments()
+        setupBottomNavigation()
+        setupViewPager()
+        observeViewModel()
+    }
 
+    private fun handleArguments() {
         requireArguments().apply {
             getString(ARG_COURSE_ID).takeIf { it.isNullOrBlank().not() }?.let { courseId ->
                 val infoType = getString(ARG_INFO_TYPE)
@@ -56,8 +61,24 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 putString(ARG_INFO_TYPE, "")
             }
         }
+    }
 
+    private fun setupBottomNavigation() {
         val openTabArg = requireArguments().getString(ARG_OPEN_TAB, HomeTab.LEARN.name)
+        val initialMenuId = getInitialMenuId(openTabArg)
+        binding.bottomNavView.selectedItemId = initialMenuId
+
+        val menu = binding.bottomNavView.menu
+        menu.clear()
+
+        val tabList = createTabList(openTabArg)
+        addMenuItems(menu, tabList)
+        setupBottomNavListener(tabList)
+
+        requireArguments().remove(ARG_OPEN_TAB)
+    }
+
+    private fun createTabList(openTabArg: String): List<Pair<Int, Fragment>> {
         val learnFragment = LearnFragment.newInstance(
             openTab = if (openTabArg == HomeTab.PROGRAMS.name) {
                 LearnTab.PROGRAMS.name
@@ -65,7 +86,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 LearnTab.COURSES.name
             }
         )
-        val tabList = mutableListOf<Pair<Int, Fragment>>().apply {
+
+        return mutableListOf<Pair<Int, Fragment>>().apply {
             add(R.id.fragmentLearn to learnFragment)
             add(R.id.fragmentDiscover to viewModel.getDiscoveryFragment)
             if (viewModel.isDownloadsFragmentEnabled) {
@@ -73,9 +95,9 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             }
             add(R.id.fragmentProfile to ProfileFragment())
         }
+    }
 
-        val menu = binding.bottomNavView.menu
-        menu.clear()
+    private fun addMenuItems(menu: Menu, tabList: List<Pair<Int, Fragment>>) {
         val tabTitles = mapOf(
             R.id.fragmentLearn to resources.getString(R.string.app_navigation_learn),
             R.id.fragmentDiscover to resources.getString(R.string.app_navigation_discovery),
@@ -88,13 +110,14 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             R.id.fragmentDownloads to R.drawable.app_ic_download_cloud,
             R.id.fragmentProfile to R.drawable.app_ic_profile
         )
+
         for ((id, _) in tabList) {
             val menuItem = menu.add(Menu.NONE, id, Menu.NONE, tabTitles[id] ?: "")
             tabIcons[id]?.let { menuItem.setIcon(it) }
         }
+    }
 
-        initViewPager(tabList)
-
+    private fun setupBottomNavListener(tabList: List<Pair<Int, Fragment>>) {
         val menuIdToIndex = tabList.mapIndexed { index, pair -> pair.first to index }.toMap()
 
         binding.bottomNavView.setOnItemSelectedListener { menuItem ->
@@ -109,7 +132,14 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             }
             true
         }
+    }
 
+    private fun setupViewPager() {
+        val tabList = createTabList(requireArguments().getString(ARG_OPEN_TAB, HomeTab.LEARN.name))
+        initViewPager(tabList)
+    }
+
+    private fun observeViewModel() {
         viewModel.isBottomBarEnabled.observe(viewLifecycleOwner) { isBottomBarEnabled ->
             enableBottomBar(isBottomBarEnabled)
         }
@@ -121,8 +151,10 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 }
             }
         }
+    }
 
-        val initialMenuId = when (openTabArg) {
+    private fun getInitialMenuId(openTabArg: String): Int {
+        return when (openTabArg) {
             HomeTab.LEARN.name, HomeTab.PROGRAMS.name -> R.id.fragmentLearn
             HomeTab.DISCOVER.name -> R.id.fragmentDiscover
             HomeTab.DOWNLOADS.name -> if (viewModel.isDownloadsFragmentEnabled) {
@@ -130,13 +162,9 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             } else {
                 R.id.fragmentLearn
             }
-
             HomeTab.PROFILE.name -> R.id.fragmentProfile
             else -> R.id.fragmentLearn
         }
-        binding.bottomNavView.selectedItemId = initialMenuId
-
-        requireArguments().remove(ARG_OPEN_TAB)
     }
 
     private fun initViewPager(tabList: List<Pair<Int, Fragment>>) {

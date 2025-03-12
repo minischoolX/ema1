@@ -119,7 +119,8 @@ dependencies {
     //  OpenEdx libs
     api("com.github.openedx:openedx-app-foundation-android:1.0.0")
 
-    debugApi "androidx.compose.ui:ui-tooling:1.7.8"
+    // Preview
+    debugApi "androidx.compose.ui:ui-tooling:$compose_ui_tooling"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

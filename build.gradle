@@ -44,6 +44,7 @@ ext {
 
     zip_version = '2.6.3'
     //testing
+    compose_ui_tooling = '1.7.8'
     mockk_version = '1.13.12'
     android_arch_version = '2.2.0'
     junit_version = '4.13.2'

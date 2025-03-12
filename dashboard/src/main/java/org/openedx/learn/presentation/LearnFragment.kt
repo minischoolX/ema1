@@ -5,7 +5,6 @@ import android.view.View
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,12 +14,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,6 +41,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import org.openedx.core.adapter.NavigationFragmentAdapter
 import org.openedx.core.presentation.global.viewBinding
+import org.openedx.core.ui.MainToolbar
 import org.openedx.core.ui.crop
 import org.openedx.core.ui.displayCutoutForLandscape
 import org.openedx.core.ui.statusBarsInset
@@ -55,7 +53,6 @@ import org.openedx.dashboard.databinding.FragmentLearnBinding
 import org.openedx.foundation.presentation.rememberWindowSize
 import org.openedx.foundation.presentation.windowSizeValue
 import org.openedx.learn.LearnType
-import org.openedx.core.R as CoreR
 
 class LearnFragment : Fragment(R.layout.fragment_learn) {
 
@@ -140,7 +137,7 @@ private fun Header(
             .then(contentWidth),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Title(
+        MainToolbar(
             label = stringResource(id = R.string.dashboard_learn),
             onSettingsClick = {
                 viewModel.onSettingsClick(fragmentManager)
@@ -153,40 +150,6 @@ private fun Header(
                     .padding(horizontal = 16.dp),
                 selectedLearnType = selectedLearnType,
                 onUpdateLearnType = onUpdateLearnType
-            )
-        }
-    }
-}
-
-@Composable
-private fun Title(
-    modifier: Modifier = Modifier,
-    label: String,
-    onSettingsClick: () -> Unit,
-) {
-    Box(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Text(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 16.dp),
-            text = label,
-            color = MaterialTheme.appColors.textDark,
-            style = MaterialTheme.appTypography.headlineBold
-        )
-        IconButton(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 12.dp),
-            onClick = {
-                onSettingsClick()
-            }
-        ) {
-            Icon(
-                imageVector = Icons.Default.ManageAccounts,
-                tint = MaterialTheme.appColors.textAccent,
-                contentDescription = stringResource(id = CoreR.string.core_accessibility_settings)
             )
         }
     }
@@ -277,7 +240,7 @@ private fun LearnDropdownMenu(
 @Composable
 private fun HeaderPreview() {
     OpenEdXTheme {
-        Title(
+        MainToolbar(
             label = stringResource(id = R.string.dashboard_learn),
             onSettingsClick = {}
         )

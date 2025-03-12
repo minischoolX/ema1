@@ -263,8 +263,9 @@ class DownloadsViewModel(
     fun removeDownloads(fragmentManager: FragmentManager, courseId: String) {
         logEvent(DownloadsAnalyticsEvent.REMOVE_DOWNLOAD_CLICKED)
         viewModelScope.launch {
-            val downloadModels =
-                interactor.getDownloadModels().first().filter { it.courseId == courseId }
+            val downloadModels = interactor.getDownloadModels().first().filter {
+                it.courseId == courseId
+            }
             val totalSize = downloadModels.sumOf { it.size }
             val title = _uiState.value.downloadCoursePreviews.find { it.id == courseId }?.name ?: ""
             val downloadDialogItem = DownloadDialogItem(
