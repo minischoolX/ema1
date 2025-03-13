@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -70,31 +69,35 @@ class DownloadsViewModel(
     val apiHostUrl get() = config.getApiHostURL()
 
     private val _uiState = MutableStateFlow(DownloadsUIState())
-    val uiState: StateFlow<DownloadsUIState>
-        get() = _uiState.asStateFlow()
+    val uiState: StateFlow<DownloadsUIState> = _uiState.asStateFlow()
 
     private val _uiMessage = MutableSharedFlow<UIMessage>()
-    val uiMessage: SharedFlow<UIMessage>
-        get() = _uiMessage.asSharedFlow()
+    val uiMessage: SharedFlow<UIMessage> = _uiMessage.asSharedFlow()
 
-    private val blockIdsByCourseId = mutableMapOf<String, List<String>>()
+    private val courseBlockIds = mutableMapOf<String, List<String>>()
 
-    val hasInternetConnection: Boolean
-        get() = networkConnection.isOnline()
+    val hasInternetConnection: Boolean get() = networkConnection.isOnline()
 
     private var downloadJobs = mutableMapOf<String, Job>()
 
     init {
-        fetchDownloads(false)
+        fetchDownloads(refresh = false)
+        observeCourseDashboardUpdates()
+        observeDownloadingModels()
+        observeDownloadModelsStatus()
+    }
 
+    private fun observeCourseDashboardUpdates() {
         viewModelScope.launch {
-            discoveryNotifier.notifier.collect {
-                if (it is CourseDashboardUpdate) {
-                    fetchDownloads(true)
+            discoveryNotifier.notifier.collect { notifier ->
+                if (notifier is CourseDashboardUpdate) {
+                    fetchDownloads(refresh = true)
                 }
             }
         }
+    }
 
+    private fun observeDownloadingModels() {
         viewModelScope.launch {
             downloadingModelsFlow.collect { downloadModels ->
                 _uiState.update { state ->
@@ -102,30 +105,30 @@ class DownloadsViewModel(
                 }
             }
         }
+    }
 
+    private fun observeDownloadModelsStatus() {
         viewModelScope.launch {
             downloadModelsStatusFlow.collect { statusMap ->
-                val downloadingCourseState = blockIdsByCourseId
-                    .mapValues { (courseId, blockIds) ->
-                        val currentCourseState = uiState.value.courseDownloadState[courseId]
-                        val blockStates = blockIds.mapNotNull { statusMap[it] }
-                        val courseDownloadState = if (blockStates.isEmpty()) {
-                            DownloadedState.NOT_DOWNLOADED
-                        } else {
-                            determineCourseState(blockStates)
-                        }
-                        val isLoadingCourseStructure =
-                            currentCourseState == DownloadedState.LOADING_COURSE_STRUCTURE &&
-                                    courseDownloadState == DownloadedState.NOT_DOWNLOADED
-                        if (isLoadingCourseStructure) {
-                            DownloadedState.LOADING_COURSE_STRUCTURE
-                        } else {
-                            courseDownloadState
-                        }
+                val updatedCourseStates = courseBlockIds.mapValues { (courseId, blockIds) ->
+                    val currentCourseState = uiState.value.courseDownloadState[courseId]
+                    val blockStates = blockIds.mapNotNull { statusMap[it] }
+                    val computedState = if (blockStates.isEmpty()) {
+                        DownloadedState.NOT_DOWNLOADED
+                    } else {
+                        determineCourseState(blockStates)
                     }
+                    if (currentCourseState == DownloadedState.LOADING_COURSE_STRUCTURE &&
+                        computedState == DownloadedState.NOT_DOWNLOADED
+                    ) {
+                        DownloadedState.LOADING_COURSE_STRUCTURE
+                    } else {
+                        computedState
+                    }
+                }
 
                 _uiState.update { state ->
-                    state.copy(courseDownloadState = downloadingCourseState)
+                    state.copy(courseDownloadState = updatedCourseStates)
                 }
             }
         }
@@ -142,66 +145,54 @@ class DownloadsViewModel(
 
     private fun fetchDownloads(refresh: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { state ->
-                state.copy(
-                    isLoading = !refresh,
-                    isRefreshing = refresh
-                )
-            }
+            updateLoadingState(isLoading = !refresh, isRefreshing = refresh)
             interactor.getDownloadCoursesPreview(refresh)
-                .onCompletion {
-                    _uiState.update { state ->
-                        state.copy(
-                            isLoading = false,
-                            isRefreshing = false
-                        )
-                    }
-                }
+                .onCompletion { resetLoadingState() }
                 .catch { e ->
-                    if (e.isInternetError()) {
-                        _uiMessage.emit(
-                            UIMessage.SnackBarMessage(
-                                resourceManager.getString(R.string.core_error_no_connection)
-                            )
-                        )
-                    } else {
-                        _uiMessage.emit(
-                            UIMessage.SnackBarMessage(
-                                resourceManager.getString(R.string.core_error_unknown_error)
-                            )
-                        )
-                    }
+                    emitErrorMessage(e)
                 }
                 .collect { downloadCoursePreviews ->
-                    downloadCoursePreviews.map {
-                        try {
-                            initBlocks(it.id, true)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                    downloadCoursePreviews.forEach { preview ->
+                        runCatching { initializeCourseBlocks(preview.id, useCache = true) }
+                            .onFailure { it.printStackTrace() }
                     }
-                    val subSectionsBlocks =
-                        allBlocks.values.filter { it.type == BlockType.SEQUENTIAL }
-                    subSectionsBlocks.map { subSection ->
-                        addDownloadableChildrenForSequentialBlock(subSection)
-                    }
+                    allBlocks.values
+                        .filter { it.type == BlockType.SEQUENTIAL }
+                        .forEach { addDownloadableChildrenForSequentialBlock(it) }
                     initDownloadModelsStatus()
                     _uiState.update { state ->
-                        state.copy(
-                            downloadCoursePreviews = downloadCoursePreviews,
-                        )
+                        state.copy(downloadCoursePreviews = downloadCoursePreviews)
                     }
                 }
         }
     }
 
-    fun refreshData() {
+    private fun updateLoadingState(isLoading: Boolean, isRefreshing: Boolean) {
         _uiState.update { state ->
-            state.copy(
-                isRefreshing = true
-            )
+            state.copy(isLoading = isLoading, isRefreshing = isRefreshing)
         }
-        fetchDownloads(true)
+    }
+
+    private fun resetLoadingState() {
+        _uiState.update { state ->
+            state.copy(isLoading = false, isRefreshing = false)
+        }
+    }
+
+    private suspend fun emitErrorMessage(e: Throwable) {
+        val text = if (e.isInternetError()) {
+            R.string.core_error_no_connection
+        } else {
+            R.string.core_error_unknown_error
+        }
+        _uiMessage.emit(
+            UIMessage.SnackBarMessage(resourceManager.getString(text))
+        )
+    }
+
+    fun refreshData() {
+        _uiState.update { it.copy(isRefreshing = true) }
+        fetchDownloads(refresh = true)
     }
 
     fun onSettingsClick(fragmentManager: FragmentManager) {
@@ -210,36 +201,13 @@ class DownloadsViewModel(
 
     fun downloadCourse(fragmentManager: FragmentManager, courseId: String) {
         logEvent(DownloadsAnalyticsEvent.DOWNLOAD_COURSE_CLICKED)
-        downloadJobs[courseId] = viewModelScope.launch {
-            try {
-                _uiState.update { state ->
-                    state.copy(
-                        courseDownloadState = state.courseDownloadState.toMap() +
-                                (courseId to DownloadedState.LOADING_COURSE_STRUCTURE)
-                    )
-                }
-                downloadAllBlocks(fragmentManager, courseId)
-            } catch (e: Exception) {
-                logEvent(DownloadsAnalyticsEvent.DOWNLOAD_ERROR)
-                _uiState.update { state ->
-                    state.copy(
-                        courseDownloadState = state.courseDownloadState.toMap() +
-                                (courseId to DownloadedState.NOT_DOWNLOADED)
-                    )
-                }
-                if (e.isInternetError()) {
-                    _uiMessage.emit(
-                        UIMessage.SnackBarMessage(
-                            resourceManager.getString(R.string.core_error_no_connection)
-                        )
-                    )
-                } else {
-                    _uiMessage.emit(
-                        UIMessage.SnackBarMessage(
-                            resourceManager.getString(R.string.core_error_unknown_error)
-                        )
-                    )
-                }
+        try {
+            showDownloadPopup(fragmentManager, courseId)
+        } catch (e: Exception) {
+            logEvent(DownloadsAnalyticsEvent.DOWNLOAD_ERROR)
+            updateCourseState(courseId, DownloadedState.NOT_DOWNLOADED)
+            viewModelScope.launch {
+                emitErrorMessage(e)
             }
         }
     }
@@ -247,12 +215,6 @@ class DownloadsViewModel(
     fun cancelDownloading(courseId: String) {
         logEvent(DownloadsAnalyticsEvent.CANCEL_DOWNLOAD_CLICKED)
         viewModelScope.launch {
-            _uiState.update { state ->
-                state.copy(
-                    courseDownloadState = state.courseDownloadState.toMap() +
-                            (courseId to DownloadedState.NOT_DOWNLOADED)
-                )
-            }
             downloadJobs[courseId]?.cancel()
             interactor.getAllDownloadModels()
                 .filter { it.courseId == courseId && it.downloadedState.isWaitingOrDownloading }
@@ -263,11 +225,11 @@ class DownloadsViewModel(
     fun removeDownloads(fragmentManager: FragmentManager, courseId: String) {
         logEvent(DownloadsAnalyticsEvent.REMOVE_DOWNLOAD_CLICKED)
         viewModelScope.launch {
-            val downloadModels = interactor.getDownloadModels().first().filter {
-                it.courseId == courseId
-            }
+            val downloadModels =
+                interactor.getDownloadModels().first().filter { it.courseId == courseId }
             val totalSize = downloadModels.sumOf { it.size }
-            val title = _uiState.value.downloadCoursePreviews.find { it.id == courseId }?.name ?: ""
+            val title =
+                _uiState.value.downloadCoursePreviews.find { it.id == courseId }?.name.orEmpty()
             val downloadDialogItem = DownloadDialogItem(
                 title = title,
                 size = totalSize,
@@ -284,52 +246,34 @@ class DownloadsViewModel(
         }
     }
 
-    private suspend fun initBlocks(courseId: String, cached: Boolean): CourseStructure {
-        val courseStructure = if (cached) {
+    private suspend fun initializeCourseBlocks(
+        courseId: String,
+        useCache: Boolean
+    ): CourseStructure {
+        val courseStructure = if (useCache) {
             interactor.getCourseStructureFromCache(courseId)
         } else {
             interactor.getCourseStructure(courseId)
         }
-        blockIdsByCourseId[courseStructure.id] = courseStructure.blockData.map { it.id }
+        courseBlockIds[courseStructure.id] = courseStructure.blockData.map { it.id }
         addBlocks(courseStructure.blockData)
         return courseStructure
     }
 
-    private suspend fun downloadAllBlocks(fragmentManager: FragmentManager, courseId: String) {
-        val courseStructure = initBlocks(courseId, false)
-        val downloadModels = interactor.getDownloadModels()
-            .map { list -> list.filter { it.courseId in courseId } }
-            .first()
-        val subSectionsBlocks = allBlocks.values.filter { it.type == BlockType.SEQUENTIAL }
-        val notDownloadedSubSectionBlocks = subSectionsBlocks.mapNotNull { subSection ->
-            addDownloadableChildrenForSequentialBlock(subSection)
-            val verticalBlocks = allBlocks.values.filter { it.id in subSection.descendants }
-            val notDownloadedBlocks = courseStructure.blockData.filter { block ->
-                block.id in verticalBlocks.flatMap { it.descendants } &&
-                        block.isDownloadable &&
-                        downloadModels.none { it.id == block.id }
-            }
-            if (notDownloadedBlocks.isNotEmpty()) subSection else null
-        }
+    private fun showDownloadPopup(fragmentManager: FragmentManager, courseId: String) {
+        val coursePreview =
+            _uiState.value.downloadCoursePreviews.find { it.id == courseId } ?: return
         downloadDialogManager.showPopup(
-            subSectionsBlocks = notDownloadedSubSectionBlocks,
-            courseId = courseId,
+            coursePreview = coursePreview,
             isBlocksDownloaded = false,
-            showCourseItem = true,
-            courseName = courseStructure.name,
             fragmentManager = fragmentManager,
             removeDownloadModels = ::removeDownloadModels,
-            saveDownloadModels = { blockId ->
-                saveDownloadModels(fileUtil.getExternalAppDir().path, courseId, blockId)
+            saveDownloadModels = {
+                initiateSaveDownloadModels(courseId)
             },
             onDismissClick = {
                 logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CANCELLED)
-                _uiState.update { state ->
-                    state.copy(
-                        courseDownloadState = state.courseDownloadState.toMap() +
-                                (courseId to DownloadedState.NOT_DOWNLOADED)
-                    )
-                }
+                updateCourseState(courseId, DownloadedState.NOT_DOWNLOADED)
             },
             onConfirmClick = {
                 logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CONFIRMED)
@@ -337,10 +281,29 @@ class DownloadsViewModel(
         )
     }
 
-    fun navigateToCourseOutline(
-        fm: FragmentManager,
-        courseId: String
-    ) {
+    private fun initiateSaveDownloadModels(courseId: String) {
+        downloadJobs[courseId] = viewModelScope.launch {
+            try {
+                updateCourseState(courseId, DownloadedState.LOADING_COURSE_STRUCTURE)
+                val courseStructure = initializeCourseBlocks(courseId, useCache = false)
+                courseStructure.blockData
+                    .filter { it.type == BlockType.SEQUENTIAL }
+                    .forEach { sequentialBlock ->
+                        addDownloadableChildrenForSequentialBlock(sequentialBlock)
+                        super.saveDownloadModels(
+                            fileUtil.getExternalAppDir().path,
+                            courseId,
+                            sequentialBlock.id
+                        )
+                    }
+            } catch (e: Exception) {
+                updateCourseState(courseId, DownloadedState.NOT_DOWNLOADED)
+                emitErrorMessage(e)
+            }
+        }
+    }
+
+    fun navigateToCourseOutline(fm: FragmentManager, courseId: String) {
         val coursePreview =
             _uiState.value.downloadCoursePreviews.find { it.id == courseId } ?: return
         router.navigateToCourseOutline(
@@ -350,13 +313,21 @@ class DownloadsViewModel(
         )
     }
 
-    fun logEvent(event: DownloadsAnalyticsEvent) {
+    private fun logEvent(event: DownloadsAnalyticsEvent) {
         analytics.logEvent(
             event = event.eventName,
-            params = buildMap {
-                put(DownloadsAnalyticsKey.NAME.key, event.biValue)
-            }
+            params = mapOf(DownloadsAnalyticsKey.NAME.key to event.biValue)
         )
+    }
+
+    private fun updateCourseState(courseId: String, state: DownloadedState) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                courseDownloadState = currentState.courseDownloadState.toMutableMap().apply {
+                    put(courseId, state)
+                }
+            )
+        }
     }
 }
 

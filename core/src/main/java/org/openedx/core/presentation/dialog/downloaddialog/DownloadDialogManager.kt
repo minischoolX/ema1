@@ -9,7 +9,7 @@ import org.openedx.core.BlockType
 import org.openedx.core.data.storage.CorePreferences
 import org.openedx.core.domain.interactor.CourseInteractor
 import org.openedx.core.domain.model.Block
-import org.openedx.core.domain.model.CourseStructure
+import org.openedx.core.domain.model.DownloadCoursePreview
 import org.openedx.core.module.DownloadWorkerController
 import org.openedx.core.module.db.DownloadModel
 import org.openedx.core.system.StorageManager
@@ -110,8 +110,6 @@ class DownloadDialogManager(
         subSectionsBlocks: List<Block>,
         courseId: String,
         isBlocksDownloaded: Boolean,
-        showCourseItem: Boolean = false,
-        courseName: String = "",
         onlyVideoBlocks: Boolean = false,
         fragmentManager: FragmentManager,
         removeDownloadModels: (blockId: String, courseId: String) -> Unit,
@@ -124,9 +122,27 @@ class DownloadDialogManager(
             courseId = courseId,
             fragmentManager = fragmentManager,
             isBlocksDownloaded = isBlocksDownloaded,
-            showCourseItem = showCourseItem,
-            courseName = courseName,
             onlyVideoBlocks = onlyVideoBlocks,
+            removeDownloadModels = removeDownloadModels,
+            saveDownloadModels = saveDownloadModels,
+            onDismissClick = onDismissClick,
+            onConfirmClick = onConfirmClick
+        )
+    }
+
+    fun showPopup(
+        coursePreview: DownloadCoursePreview,
+        isBlocksDownloaded: Boolean,
+        fragmentManager: FragmentManager,
+        removeDownloadModels: (blockId: String, courseId: String) -> Unit,
+        saveDownloadModels: () -> Unit,
+        onDismissClick: () -> Unit = {},
+        onConfirmClick: () -> Unit = {},
+    ) {
+        createCourseDownloadItems(
+            coursePreview = coursePreview,
+            fragmentManager = fragmentManager,
+            isBlocksDownloaded = isBlocksDownloaded,
             removeDownloadModels = removeDownloadModels,
             saveDownloadModels = saveDownloadModels,
             onDismissClick = onDismissClick,
@@ -222,8 +238,6 @@ class DownloadDialogManager(
         courseId: String,
         fragmentManager: FragmentManager,
         isBlocksDownloaded: Boolean,
-        showCourseItem: Boolean,
-        courseName: String,
         onlyVideoBlocks: Boolean,
         removeDownloadModels: (blockId: String, courseId: String) -> Unit,
         saveDownloadModels: (blockId: String) -> Unit,
@@ -233,31 +247,25 @@ class DownloadDialogManager(
         coroutineScope.launch {
             val courseStructure = interactor.getCourseStructure(courseId, false)
             val downloadModelIds = interactor.getAllDownloadModels().map { it.id }
-            val downloadDialogItems = if (showCourseItem) {
-                val totalSize = subSectionsBlocks.sumOf { subSection ->
-                    calculateSubSectionSize(
-                        subSection = subSection,
-                        courseStructure = courseStructure,
-                        downloadModelIds = downloadModelIds,
-                        onlyVideoBlocks = onlyVideoBlocks,
-                        isBlocksDownloaded = isBlocksDownloaded
-                    )
-                }
-                listOf(DownloadDialogItem(title = courseName, size = totalSize))
-            } else {
-                subSectionsBlocks.mapNotNull { subSection ->
-                    val size = calculateSubSectionSize(
-                        subSection = subSection,
-                        courseStructure = courseStructure,
-                        downloadModelIds = downloadModelIds,
-                        onlyVideoBlocks = onlyVideoBlocks,
-                        isBlocksDownloaded = isBlocksDownloaded
-                    )
-                    if (size > 0) {
-                        DownloadDialogItem(title = subSection.displayName, size = size)
-                    } else {
-                        null
+
+            val downloadDialogItems = subSectionsBlocks.mapNotNull { subSectionBlock ->
+                val verticalBlocks =
+                    courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
+                val blocks = verticalBlocks.flatMap { verticalBlock ->
+                    courseStructure.blockData.filter {
+                        it.id in verticalBlock.descendants &&
+                                (isBlocksDownloaded == (it.id in downloadModelIds)) &&
+                                (!onlyVideoBlocks || it.type == BlockType.VIDEO)
                     }
+                }
+                val size = blocks.sumOf { it.getFileSize() }
+                if (size > 0) {
+                    DownloadDialogItem(
+                        title = subSectionBlock.displayName,
+                        size = size
+                    )
+                } else {
+                    null
                 }
             }
 
@@ -269,11 +277,14 @@ class DownloadDialogManager(
                     sizeSum = downloadDialogItems.sumOf { it.size },
                     fragmentManager = fragmentManager,
                     removeDownloadModels = {
-                        subSectionsBlocks.forEach { removeDownloadModels(it.id, courseId) }
+                        subSectionsBlocks.forEach {
+                            removeDownloadModels(
+                                it.id,
+                                courseId
+                            )
+                        }
                     },
-                    saveDownloadModels = {
-                        subSectionsBlocks.forEach { saveDownloadModels(it.id) }
-                    },
+                    saveDownloadModels = { subSectionsBlocks.forEach { saveDownloadModels(it.id) } },
                     onDismissClick = onDismissClick,
                     onConfirmClick = onConfirmClick,
                 )
@@ -281,21 +292,48 @@ class DownloadDialogManager(
         }
     }
 
-    private fun calculateSubSectionSize(
-        subSection: Block,
-        courseStructure: CourseStructure,
-        downloadModelIds: List<String>,
+    private fun createCourseDownloadItems(
+        coursePreview: DownloadCoursePreview,
+        fragmentManager: FragmentManager,
         isBlocksDownloaded: Boolean,
-        onlyVideoBlocks: Boolean
-    ): Long {
-        val verticalBlocks = courseStructure.blockData.filter { it.id in subSection.descendants }
-        val blocks = verticalBlocks.flatMap { verticalBlock ->
-            courseStructure.blockData.filter {
-                it.id in verticalBlock.descendants &&
-                        (isBlocksDownloaded == (it.id in downloadModelIds)) &&
-                        (!onlyVideoBlocks || it.type == BlockType.VIDEO)
-            }
+        removeDownloadModels: (blockId: String, courseId: String) -> Unit,
+        saveDownloadModels: () -> Unit,
+        onDismissClick: () -> Unit = {},
+        onConfirmClick: () -> Unit = {},
+    ) {
+        coroutineScope.launch {
+            val downloadDialogItems = listOf(
+                DownloadDialogItem(
+                    title = coursePreview.name,
+                    size = coursePreview.totalSize
+                )
+            )
+
+            uiState.emit(
+                DownloadDialogUIState(
+                    downloadDialogItems = downloadDialogItems,
+                    isAllBlocksDownloaded = isBlocksDownloaded,
+                    isDownloadFailed = false,
+                    sizeSum = downloadDialogItems.sumOf { it.size },
+                    fragmentManager = fragmentManager,
+                    removeDownloadModels = {
+                        coroutineScope.launch {
+                            val downloadModels = interactor.getAllDownloadModels().filter {
+                                it.courseId == coursePreview.id
+                            }
+                            downloadModels.forEach {
+                                removeDownloadModels(
+                                    it.id,
+                                    coursePreview.id
+                                )
+                            }
+                        }
+                    },
+                    saveDownloadModels = saveDownloadModels,
+                    onDismissClick = onDismissClick,
+                    onConfirmClick = onConfirmClick,
+                )
+            )
         }
-        return blocks.sumOf { it.getFileSize() }
     }
 }

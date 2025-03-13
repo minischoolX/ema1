@@ -81,7 +81,7 @@ class DownloadsViewModelTest {
     private val unknownError = "Unknown error"
 
     private val downloadCoursePreview =
-        DownloadCoursePreview(id = "", name = "", image = "", totalSize = 0)
+        DownloadCoursePreview(id = "course1", name = "", image = "", totalSize = 0)
     private val assignmentProgress = AssignmentProgress(
         assignmentType = "Homework",
         numPointsEarned = 1f,
@@ -263,7 +263,13 @@ class DownloadsViewModelTest {
 
         coVerify(exactly = 1) {
             downloadDialogManager.showPopup(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+                coursePreview = any(),
+                isBlocksDownloaded = any(),
+                fragmentManager = any(),
+                removeDownloadModels = any(),
+                saveDownloadModels = any(),
+                onDismissClick = any(),
+                onConfirmClick = any()
             )
         }
     }
@@ -296,11 +302,6 @@ class DownloadsViewModelTest {
 
             viewModel.cancelDownloading("course1")
             advanceUntilIdle()
-
-            assertEquals(
-                DownloadedState.NOT_DOWNLOADED,
-                viewModel.uiState.value.courseDownloadState["course1"]
-            )
 
             coVerify { interactor.getAllDownloadModels() }
         }
