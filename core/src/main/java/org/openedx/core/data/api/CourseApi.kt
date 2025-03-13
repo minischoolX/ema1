@@ -6,6 +6,7 @@ import org.openedx.core.data.model.BlocksCompletionBody
 import org.openedx.core.data.model.CourseComponentStatus
 import org.openedx.core.data.model.CourseDates
 import org.openedx.core.data.model.CourseDatesBannerInfo
+import org.openedx.core.data.model.CourseDatesResponse
 import org.openedx.core.data.model.CourseEnrollmentDetails
 import org.openedx.core.data.model.CourseEnrollments
 import org.openedx.core.data.model.CourseStructureModel
@@ -109,4 +110,10 @@ interface CourseApi {
     suspend fun getDownloadCoursesPreview(
         @Path("username") username: String
     ): List<DownloadCoursePreview>
+
+    @GET("/api/mobile/v1/course_dates/{username}/")
+    suspend fun getUserDates(
+        @Path("username") username: String,
+        @Query("page") page: Int = 1
+    ): CourseDatesResponse
 }
