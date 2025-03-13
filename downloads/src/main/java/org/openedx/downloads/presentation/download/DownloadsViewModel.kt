@@ -315,6 +315,8 @@ class DownloadsViewModel(
             subSectionsBlocks = notDownloadedSubSectionBlocks,
             courseId = courseId,
             isBlocksDownloaded = false,
+            showCourseItem = true,
+            courseName = courseStructure.name,
             fragmentManager = fragmentManager,
             removeDownloadModels = ::removeDownloadModels,
             saveDownloadModels = { blockId ->

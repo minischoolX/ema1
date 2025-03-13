@@ -264,7 +264,9 @@ class CourseOutlineViewModelTest {
                     any(),
                     any(),
                     any(),
-                    any()
+                    any(),
+                    any(),
+                    any(),
                 )
             } returns Unit
             coEvery { interactor.getCourseStatusFlow(any()) } returns flow { throw UnknownHostException() }

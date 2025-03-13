@@ -263,7 +263,7 @@ class DownloadsViewModelTest {
 
         coVerify(exactly = 1) {
             downloadDialogManager.showPopup(
-                any(), any(), any(), any(), any(), any(), any(), any(), any()
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
             )
         }
     }

@@ -198,7 +198,19 @@ class CourseVideoViewModelTest {
         every { config.getApiHostURL() } returns "http://localhost:8000"
         every { courseNotifier.notifier } returns flowOf(CourseLoading(false))
         every { preferencesManager.isRelativeDatesEnabled } returns true
-        every { downloadDialogManager.showPopup(any(), any(), any(), any(), any(), any(), any()) } returns Unit
+        every {
+            downloadDialogManager.showPopup(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns Unit
     }
 
     @After
@@ -373,88 +385,90 @@ class CourseVideoViewModelTest {
     }
 
     @Test
-    fun `saveDownloadModels only wifi download, with connection`() = runTest(UnconfinedTestDispatcher()) {
-        every { config.getCourseUIConfig().isCourseDropdownNavigationEnabled } returns false
-        every { preferencesManager.videoSettings } returns VideoSettings.default
-        val viewModel = CourseVideoViewModel(
-            "",
-            "",
-            config,
-            interactor,
-            resourceManager,
-            networkConnection,
-            preferencesManager,
-            courseNotifier,
-            videoNotifier,
-            analytics,
-            downloadDialogManager,
-            fileUtil,
-            courseRouter,
-            coreAnalytics,
-            downloadDao,
-            workerController,
-            downloadHelper,
-        )
-        coEvery { interactor.getCourseStructureForVideos(any()) } returns courseStructure
-        coEvery { downloadDao.getAllDataFlow() } returns flow { emit(listOf(downloadModelEntity)) }
-        every { preferencesManager.videoSettings.wifiDownloadOnly } returns true
-        every { networkConnection.isWifiConnected() } returns true
-        coEvery { workerController.saveModels(any()) } returns Unit
-        coEvery { downloadDao.getAllDataFlow() } returns flow {
-            emit(listOf(DownloadModelEntity.createFrom(downloadModel)))
-        }
-        every { coreAnalytics.logEvent(any(), any()) } returns Unit
-        val message = async {
-            withTimeoutOrNull(5000) {
-                viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
+    fun `saveDownloadModels only wifi download, with connection`() =
+        runTest(UnconfinedTestDispatcher()) {
+            every { config.getCourseUIConfig().isCourseDropdownNavigationEnabled } returns false
+            every { preferencesManager.videoSettings } returns VideoSettings.default
+            val viewModel = CourseVideoViewModel(
+                "",
+                "",
+                config,
+                interactor,
+                resourceManager,
+                networkConnection,
+                preferencesManager,
+                courseNotifier,
+                videoNotifier,
+                analytics,
+                downloadDialogManager,
+                fileUtil,
+                courseRouter,
+                coreAnalytics,
+                downloadDao,
+                workerController,
+                downloadHelper,
+            )
+            coEvery { interactor.getCourseStructureForVideos(any()) } returns courseStructure
+            coEvery { downloadDao.getAllDataFlow() } returns flow { emit(listOf(downloadModelEntity)) }
+            every { preferencesManager.videoSettings.wifiDownloadOnly } returns true
+            every { networkConnection.isWifiConnected() } returns true
+            coEvery { workerController.saveModels(any()) } returns Unit
+            coEvery { downloadDao.getAllDataFlow() } returns flow {
+                emit(listOf(DownloadModelEntity.createFrom(downloadModel)))
             }
+            every { coreAnalytics.logEvent(any(), any()) } returns Unit
+            val message = async {
+                withTimeoutOrNull(5000) {
+                    viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
+                }
+            }
+
+            viewModel.saveDownloadModels("", "", "")
+            advanceUntilIdle()
+
+            assert(message.await()?.message.isNullOrEmpty())
         }
-
-        viewModel.saveDownloadModels("", "", "")
-        advanceUntilIdle()
-
-        assert(message.await()?.message.isNullOrEmpty())
-    }
 
     @Test
-    fun `saveDownloadModels only wifi download, without connection`() = runTest(UnconfinedTestDispatcher()) {
-        every { config.getCourseUIConfig().isCourseDropdownNavigationEnabled } returns false
-        every { preferencesManager.videoSettings } returns VideoSettings.default
-        val viewModel = CourseVideoViewModel(
-            "",
-            "",
-            config,
-            interactor,
-            resourceManager,
-            networkConnection,
-            preferencesManager,
-            courseNotifier,
-            videoNotifier,
-            analytics,
-            downloadDialogManager,
-            fileUtil,
-            courseRouter,
-            coreAnalytics,
-            downloadDao,
-            workerController,
-            downloadHelper,
-        )
-        every { preferencesManager.videoSettings.wifiDownloadOnly } returns true
-        every { networkConnection.isWifiConnected() } returns false
-        every { networkConnection.isOnline() } returns false
-        coEvery { interactor.getCourseStructureForVideos(any()) } returns courseStructure
-        coEvery { downloadDao.getAllDataFlow() } returns flow { emit(listOf(downloadModelEntity)) }
-        coEvery { workerController.saveModels(any()) } returns Unit
-        val message = async {
-            withTimeoutOrNull(5000) {
-                viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
+    fun `saveDownloadModels only wifi download, without connection`() =
+        runTest(UnconfinedTestDispatcher()) {
+            every { config.getCourseUIConfig().isCourseDropdownNavigationEnabled } returns false
+            every { preferencesManager.videoSettings } returns VideoSettings.default
+            val viewModel = CourseVideoViewModel(
+                "",
+                "",
+                config,
+                interactor,
+                resourceManager,
+                networkConnection,
+                preferencesManager,
+                courseNotifier,
+                videoNotifier,
+                analytics,
+                downloadDialogManager,
+                fileUtil,
+                courseRouter,
+                coreAnalytics,
+                downloadDao,
+                workerController,
+                downloadHelper,
+            )
+            every { preferencesManager.videoSettings.wifiDownloadOnly } returns true
+            every { networkConnection.isWifiConnected() } returns false
+            every { networkConnection.isOnline() } returns false
+            coEvery { interactor.getCourseStructureForVideos(any()) } returns courseStructure
+            coEvery { downloadDao.getAllDataFlow() } returns flow { emit(listOf(downloadModelEntity)) }
+            coEvery { workerController.saveModels(any()) } returns Unit
+            val message = async {
+                withTimeoutOrNull(5000) {
+                    viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
+                }
             }
+
+            viewModel.saveDownloadModels("", "", "")
+
+            advanceUntilIdle()
+
+            assert(message.await()?.message.isNullOrEmpty())
         }
-
-        viewModel.saveDownloadModels("", "", "")
-
-        advanceUntilIdle()
-
-        assert(message.await()?.message.isNullOrEmpty())
-    }
 }
