@@ -22,6 +22,7 @@ import org.openedx.core.R
 import org.openedx.core.config.Config
 import org.openedx.core.data.storage.CorePreferences
 import org.openedx.core.domain.model.CourseStructure
+import org.openedx.core.domain.model.DownloadCoursePreview
 import org.openedx.core.module.DownloadWorkerController
 import org.openedx.core.module.db.DownloadDao
 import org.openedx.core.module.db.DownloadedState
@@ -225,11 +226,11 @@ class DownloadsViewModel(
     fun removeDownloads(fragmentManager: FragmentManager, courseId: String) {
         logEvent(DownloadsAnalyticsEvent.REMOVE_DOWNLOAD_CLICKED)
         viewModelScope.launch {
-            val downloadModels =
-                interactor.getDownloadModels().first().filter { it.courseId == courseId }
+            val downloadModels = interactor.getDownloadModels().first().filter {
+                it.courseId == courseId && it.downloadedState == DownloadedState.DOWNLOADED
+            }
             val totalSize = downloadModels.sumOf { it.size }
-            val title =
-                _uiState.value.downloadCoursePreviews.find { it.id == courseId }?.name.orEmpty()
+            val title = getCoursePreview(courseId)?.name.orEmpty()
             val downloadDialogItem = DownloadDialogItem(
                 title = title,
                 size = totalSize,
@@ -261,8 +262,7 @@ class DownloadsViewModel(
     }
 
     private fun showDownloadPopup(fragmentManager: FragmentManager, courseId: String) {
-        val coursePreview =
-            _uiState.value.downloadCoursePreviews.find { it.id == courseId } ?: return
+        val coursePreview = getCoursePreview(courseId) ?: return
         downloadDialogManager.showPopup(
             coursePreview = coursePreview,
             isBlocksDownloaded = false,
@@ -304,8 +304,7 @@ class DownloadsViewModel(
     }
 
     fun navigateToCourseOutline(fm: FragmentManager, courseId: String) {
-        val coursePreview =
-            _uiState.value.downloadCoursePreviews.find { it.id == courseId } ?: return
+        val coursePreview = getCoursePreview(courseId) ?: return
         router.navigateToCourseOutline(
             fm = fm,
             courseId = coursePreview.id,
@@ -328,6 +327,10 @@ class DownloadsViewModel(
                 }
             )
         }
+    }
+
+    private fun getCoursePreview(courseId: String): DownloadCoursePreview? {
+        return _uiState.value.downloadCoursePreviews.find { it.id == courseId }
     }
 }
 
