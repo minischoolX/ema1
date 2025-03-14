@@ -1,5 +1,6 @@
 package org.openedx.downloads.presentation.download
 
+import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +19,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -52,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -98,6 +105,7 @@ fun DownloadsScreen(
 ) {
     val scaffoldState = rememberScaffoldState()
     val windowSize = rememberWindowSize()
+    val configuration = LocalConfiguration.current
     val contentWidth by remember(key1 = windowSize) {
         mutableStateOf(
             windowSize.windowSizeValue(
@@ -158,34 +166,72 @@ fun DownloadsScreen(
                             .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.TopCenter
                     ) {
-                        LazyColumn(
-                            modifier = contentWidth,
-                            contentPadding = PaddingValues(bottom = 20.dp, top = 12.dp),
-                            verticalArrangement = Arrangement.spacedBy(20.dp)
-                        ) {
-                            items(uiState.downloadCoursePreviews) { item ->
-                                val downloadModels =
-                                    uiState.downloadModels.filter { it.courseId == item.id }
-                                val downloadState = uiState.courseDownloadState[item.id]
-                                    ?: DownloadedState.NOT_DOWNLOADED
-                                CourseItem(
-                                    downloadCoursePreview = item,
-                                    downloadModels = downloadModels,
-                                    downloadedState = downloadState,
-                                    apiHostUrl = apiHostUrl,
-                                    onCourseClick = {
-                                        onAction(DownloadsViewActions.OpenCourse(item.id))
-                                    },
-                                    onDownloadClick = {
-                                        onAction(DownloadsViewActions.DownloadCourse(item.id))
-                                    },
-                                    onCancelClick = {
-                                        onAction(DownloadsViewActions.CancelDownloading(item.id))
-                                    },
-                                    onRemoveClick = {
-                                        onAction(DownloadsViewActions.RemoveDownloads(item.id))
+                        if (configuration.orientation == ORIENTATION_LANDSCAPE || windowSize.isTablet) {
+                            LazyVerticalGrid(
+                                modifier = contentWidth.fillMaxHeight(),
+                                state = rememberLazyGridState(),
+                                columns = GridCells.Fixed(2),
+                                verticalArrangement = Arrangement.spacedBy(20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                contentPadding = PaddingValues(bottom = 20.dp, top = 12.dp),
+                                content = {
+                                    items(uiState.downloadCoursePreviews) { item ->
+                                        val downloadModels =
+                                            uiState.downloadModels.filter { it.courseId == item.id }
+                                        val downloadState = uiState.courseDownloadState[item.id]
+                                            ?: DownloadedState.NOT_DOWNLOADED
+                                        CourseItem(
+                                            modifier = Modifier.height(314.dp),
+                                            downloadCoursePreview = item,
+                                            downloadModels = downloadModels,
+                                            downloadedState = downloadState,
+                                            apiHostUrl = apiHostUrl,
+                                            onCourseClick = {
+                                                onAction(DownloadsViewActions.OpenCourse(item.id))
+                                            },
+                                            onDownloadClick = {
+                                                onAction(DownloadsViewActions.DownloadCourse(item.id))
+                                            },
+                                            onCancelClick = {
+                                                onAction(DownloadsViewActions.CancelDownloading(item.id))
+                                            },
+                                            onRemoveClick = {
+                                                onAction(DownloadsViewActions.RemoveDownloads(item.id))
+                                            }
+                                        )
                                     }
-                                )
+                                }
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = contentWidth,
+                                contentPadding = PaddingValues(bottom = 20.dp, top = 12.dp),
+                                verticalArrangement = Arrangement.spacedBy(20.dp)
+                            ) {
+                                items(uiState.downloadCoursePreviews) { item ->
+                                    val downloadModels =
+                                        uiState.downloadModels.filter { it.courseId == item.id }
+                                    val downloadState = uiState.courseDownloadState[item.id]
+                                        ?: DownloadedState.NOT_DOWNLOADED
+                                    CourseItem(
+                                        downloadCoursePreview = item,
+                                        downloadModels = downloadModels,
+                                        downloadedState = downloadState,
+                                        apiHostUrl = apiHostUrl,
+                                        onCourseClick = {
+                                            onAction(DownloadsViewActions.OpenCourse(item.id))
+                                        },
+                                        onDownloadClick = {
+                                            onAction(DownloadsViewActions.DownloadCourse(item.id))
+                                        },
+                                        onCancelClick = {
+                                            onAction(DownloadsViewActions.CancelDownloading(item.id))
+                                        },
+                                        onRemoveClick = {
+                                            onAction(DownloadsViewActions.RemoveDownloads(item.id))
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -231,6 +277,8 @@ private fun CourseItem(
     onRemoveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
+    val windowSize = rememberWindowSize()
+    val configuration = LocalConfiguration.current
     var isDropdownExpanded by remember { mutableStateOf(false) }
     val downloadedSize = downloadModels
         .filter { it.downloadedState == DownloadedState.DOWNLOADED }
@@ -254,7 +302,14 @@ private fun CourseItem(
             Column(
                 modifier = Modifier.animateContentSize()
             ) {
+                val imageModifier =
+                    if (configuration.orientation == ORIENTATION_LANDSCAPE || windowSize.isTablet) {
+                        Modifier.weight(1f)
+                    } else {
+                        Modifier.height(120.dp)
+                    }
                 AsyncImage(
+                    modifier = imageModifier.fillMaxWidth(),
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(downloadCoursePreview.image.toImageLink(apiHostUrl))
                         .error(org.openedx.core.R.drawable.core_no_image_course)
@@ -262,9 +317,6 @@ private fun CourseItem(
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
                 )
                 Column(
                     modifier = Modifier
