@@ -525,6 +525,7 @@ val screenModule = module {
             fileUtil = get(),
             analytics = get(),
             discoveryNotifier = get(),
+            courseNotifier = get(),
             router = get()
         )
     }

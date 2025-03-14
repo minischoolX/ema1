@@ -36,6 +36,9 @@ import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogItem
 import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.system.connection.NetworkConnection
 import org.openedx.core.system.notifier.CourseDashboardUpdate
+import org.openedx.core.system.notifier.CourseNotifier
+import org.openedx.core.system.notifier.CourseStructureGot
+import org.openedx.core.system.notifier.CourseStructureUpdated
 import org.openedx.core.system.notifier.DiscoveryNotifier
 import org.openedx.downloads.domain.interactor.DownloadInteractor
 import org.openedx.downloads.presentation.DownloadsRouter
@@ -54,6 +57,7 @@ class DownloadsViewModel(
     private val config: Config,
     private val analytics: DownloadsAnalytics,
     private val discoveryNotifier: DiscoveryNotifier,
+    private val courseNotifier: CourseNotifier,
     private val router: DownloadsRouter,
     preferencesManager: CorePreferences,
     coreAnalytics: CoreAnalytics,
@@ -86,6 +90,7 @@ class DownloadsViewModel(
         observeCourseDashboardUpdates()
         observeDownloadingModels()
         observeDownloadModelsStatus()
+        observeCourseStructureUpdates()
     }
 
     private fun observeCourseDashboardUpdates() {
@@ -93,6 +98,22 @@ class DownloadsViewModel(
             discoveryNotifier.notifier.collect { notifier ->
                 if (notifier is CourseDashboardUpdate) {
                     fetchDownloads(refresh = true)
+                }
+            }
+        }
+    }
+
+    private fun observeCourseStructureUpdates() {
+        viewModelScope.launch {
+            courseNotifier.notifier.collect { notifier ->
+                when (notifier) {
+                    is CourseStructureGot -> {
+                        fetchDownloads(refresh = true)
+                    }
+
+                    is CourseStructureUpdated -> {
+                        fetchDownloads(refresh = true)
+                    }
                 }
             }
         }

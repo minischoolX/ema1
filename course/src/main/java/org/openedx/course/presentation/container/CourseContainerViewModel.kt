@@ -3,6 +3,7 @@ package org.openedx.course.presentation.container
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
+import androidx.core.graphics.createBitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -35,6 +36,7 @@ import org.openedx.core.system.notifier.CourseDatesShifted
 import org.openedx.core.system.notifier.CourseLoading
 import org.openedx.core.system.notifier.CourseNotifier
 import org.openedx.core.system.notifier.CourseOpenBlock
+import org.openedx.core.system.notifier.CourseStructureGot
 import org.openedx.core.system.notifier.CourseStructureUpdated
 import org.openedx.core.system.notifier.RefreshDates
 import org.openedx.core.system.notifier.RefreshDiscussions
@@ -116,7 +118,7 @@ class CourseContainerViewModel(
     val calendarSyncUIState: StateFlow<CalendarSyncUIState> =
         _calendarSyncUIState.asStateFlow()
 
-    private var _courseImage = MutableStateFlow(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
+    private var _courseImage = MutableStateFlow(createBitmap(1, 1))
     val courseImage: StateFlow<Bitmap> = _courseImage.asStateFlow()
 
     val hasInternetConnection: Boolean
@@ -187,6 +189,7 @@ class CourseContainerViewModel(
                     courseStructure != null -> handleCourseStructureOnly(courseStructure)
                     else -> _courseAccessStatus.value = CourseAccessError.UNKNOWN
                 }
+                courseNotifier.send(CourseStructureGot(courseId))
             }
         }
     }
