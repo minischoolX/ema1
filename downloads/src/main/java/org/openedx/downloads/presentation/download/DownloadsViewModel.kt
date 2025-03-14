@@ -227,9 +227,12 @@ class DownloadsViewModel(
         logEvent(DownloadsAnalyticsEvent.REMOVE_DOWNLOAD_CLICKED)
         viewModelScope.launch {
             val downloadModels = interactor.getDownloadModels().first().filter {
-                it.courseId == courseId && it.downloadedState == DownloadedState.DOWNLOADED
+                it.courseId == courseId
             }
-            val totalSize = downloadModels.sumOf { it.size }
+            val downloadedModels = downloadModels.filter {
+                it.downloadedState == DownloadedState.DOWNLOADED
+            }
+            val totalSize = downloadedModels.sumOf { it.size }
             val title = getCoursePreview(courseId)?.name.orEmpty()
             val downloadDialogItem = DownloadDialogItem(
                 title = title,

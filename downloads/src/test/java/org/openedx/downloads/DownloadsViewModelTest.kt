@@ -235,7 +235,7 @@ class DownloadsViewModelTest {
     }
 
     @Test
-    fun `downloadCourse should update courseDownloadState and show download dialog`() = runTest {
+    fun `downloadCourse should show download dialog`() = runTest {
         val viewModel = DownloadsViewModel(
             downloadsRouter,
             networkConnection,
