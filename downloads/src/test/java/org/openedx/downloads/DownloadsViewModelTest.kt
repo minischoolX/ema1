@@ -43,6 +43,7 @@ import org.openedx.core.presentation.CoreAnalytics
 import org.openedx.core.presentation.DownloadsAnalytics
 import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.system.connection.NetworkConnection
+import org.openedx.core.system.notifier.CourseNotifier
 import org.openedx.core.system.notifier.DiscoveryNotifier
 import org.openedx.downloads.domain.interactor.DownloadInteractor
 import org.openedx.downloads.presentation.DownloadsRouter
@@ -76,6 +77,7 @@ class DownloadsViewModelTest {
     private val downloadHelper = mockk<DownloadHelper>(relaxed = true)
     private val router = mockk<DownloadsRouter>(relaxed = true)
     private val discoveryNotifier = mockk<DiscoveryNotifier>(relaxed = true)
+    private val courseNotifier = mockk<CourseNotifier>(relaxed = true)
 
     private val noInternet = "No connection"
     private val unknownError = "Unknown error"
@@ -220,6 +222,7 @@ class DownloadsViewModelTest {
             config,
             analytics,
             discoveryNotifier,
+            courseNotifier,
             router,
             preferencesManager,
             coreAnalytics,
@@ -246,6 +249,7 @@ class DownloadsViewModelTest {
             config,
             analytics,
             discoveryNotifier,
+            courseNotifier,
             router,
             preferencesManager,
             coreAnalytics,
@@ -287,6 +291,7 @@ class DownloadsViewModelTest {
                 config,
                 analytics,
                 discoveryNotifier,
+                courseNotifier,
                 router,
                 preferencesManager,
                 coreAnalytics,
@@ -320,6 +325,7 @@ class DownloadsViewModelTest {
             config,
             analytics,
             discoveryNotifier,
+            courseNotifier,
             router,
             preferencesManager,
             coreAnalytics,
@@ -359,6 +365,7 @@ class DownloadsViewModelTest {
             config,
             analytics,
             discoveryNotifier,
+            courseNotifier,
             router,
             preferencesManager,
             coreAnalytics,

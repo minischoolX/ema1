@@ -284,9 +284,9 @@ private fun CourseItem(
         .filter { it.downloadedState == DownloadedState.DOWNLOADED }
         .sumOf { it.size }
     val availableSize = downloadCoursePreview.totalSize - downloadedSize
-    val availableSizeString = availableSize.toFileSize(space = false)
+    val availableSizeString = availableSize.toFileSize(space = false, round = 1)
     val progress: Float = try {
-        downloadedSize.toFloat() / availableSize.toFloat()
+        downloadedSize.toFloat() / downloadCoursePreview.totalSize.toFloat()
     } catch (_: ArithmeticException) {
         0f
     }
@@ -350,7 +350,7 @@ private fun CourseItem(
                             color = MaterialTheme.appColors.successGreen,
                             text = stringResource(
                                 R.string.downloaded_downloaded_size,
-                                downloadedSize.toFileSize(space = false)
+                                downloadedSize.toFileSize(space = false, round = 1)
                             )
                         )
                     }

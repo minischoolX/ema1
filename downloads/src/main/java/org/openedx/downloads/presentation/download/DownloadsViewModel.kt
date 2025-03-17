@@ -1,7 +1,5 @@
 package org.openedx.downloads.presentation.download
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -138,7 +136,13 @@ class DownloadsViewModel(
                     val computedState = if (blockStates.isEmpty()) {
                         DownloadedState.NOT_DOWNLOADED
                     } else {
-                        determineCourseState(blockStates)
+                        val downloadedSize = _uiState.value.downloadModels
+                            .filter { it.courseId == courseId }
+                            .sumOf { it.size }
+                        val courseSize = _uiState.value.downloadCoursePreviews
+                            .find { it.id == courseId }?.totalSize ?: 0
+                        val isSizeMatch: Boolean = downloadedSize.toDouble() / courseSize >= 0.95
+                        determineCourseState(blockStates, isSizeMatch)
                     }
                     if (currentCourseState == DownloadedState.LOADING_COURSE_STRUCTURE &&
                         computedState == DownloadedState.NOT_DOWNLOADED
@@ -156,9 +160,12 @@ class DownloadsViewModel(
         }
     }
 
-    private fun determineCourseState(blockStates: List<DownloadedState>): DownloadedState {
+    private fun determineCourseState(
+        blockStates: List<DownloadedState>,
+        isSizeMatch: Boolean
+    ): DownloadedState {
         return when {
-            blockStates.all { it == DownloadedState.DOWNLOADED } -> DownloadedState.DOWNLOADED
+            blockStates.all { it == DownloadedState.DOWNLOADED } && isSizeMatch -> DownloadedState.DOWNLOADED
             blockStates.all { it == DownloadedState.WAITING } -> DownloadedState.WAITING
             blockStates.any { it == DownloadedState.DOWNLOADING } -> DownloadedState.DOWNLOADING
             else -> DownloadedState.NOT_DOWNLOADED
@@ -169,7 +176,9 @@ class DownloadsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             updateLoadingState(isLoading = !refresh, isRefreshing = refresh)
             interactor.getDownloadCoursesPreview(refresh)
-                .onCompletion { resetLoadingState() }
+                .onCompletion {
+                    resetLoadingState()
+                }
                 .catch { e ->
                     emitErrorMessage(e)
                 }
@@ -183,7 +192,11 @@ class DownloadsViewModel(
                         .forEach { addDownloadableChildrenForSequentialBlock(it) }
                     initDownloadModelsStatus()
                     _uiState.update { state ->
-                        state.copy(downloadCoursePreviews = downloadCoursePreviews)
+                        state.copy(
+                            downloadCoursePreviews = downloadCoursePreviews,
+                            isLoading = false,
+                            isRefreshing = false
+                        )
                     }
                 }
         }
@@ -192,12 +205,6 @@ class DownloadsViewModel(
     private fun updateLoadingState(isLoading: Boolean, isRefreshing: Boolean) {
         _uiState.update { state ->
             state.copy(isLoading = isLoading, isRefreshing = isRefreshing)
-        }
-    }
-
-    private fun resetLoadingState() {
-        _uiState.update { state ->
-            state.copy(isLoading = false, isRefreshing = false)
         }
     }
 
@@ -213,7 +220,6 @@ class DownloadsViewModel(
     }
 
     fun refreshData() {
-        _uiState.update { it.copy(isRefreshing = true) }
         fetchDownloads(refresh = true)
     }
 
@@ -258,7 +264,6 @@ class DownloadsViewModel(
             val downloadDialogItem = DownloadDialogItem(
                 title = title,
                 size = totalSize,
-                icon = Icons.AutoMirrored.Outlined.InsertDriveFile
             )
             downloadDialogManager.showRemoveDownloadModelPopup(
                 downloadDialogItem = downloadDialogItem,
@@ -341,6 +346,12 @@ class DownloadsViewModel(
             event = event.eventName,
             params = mapOf(DownloadsAnalyticsKey.NAME.key to event.biValue)
         )
+    }
+
+    private fun resetLoadingState() {
+        _uiState.update { state ->
+            state.copy(isLoading = false, isRefreshing = false)
+        }
     }
 
     private fun updateCourseState(courseId: String, state: DownloadedState) {
