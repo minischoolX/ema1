@@ -17,6 +17,8 @@ import org.openedx.core.module.db.DownloadDao
 import org.openedx.core.module.db.DownloadModelEntity
 import org.openedx.course.data.storage.CourseConverter
 import org.openedx.dashboard.data.DashboardDao
+import org.openedx.dates.data.storage.CourseDateEntity
+import org.openedx.dates.data.storage.DatesDao
 import org.openedx.discovery.data.converter.DiscoveryConverter
 import org.openedx.discovery.data.model.room.CourseEntity
 import org.openedx.discovery.data.storage.DiscoveryDao
@@ -34,7 +36,8 @@ const val DATABASE_NAME = "OpenEdX_db"
         CourseCalendarEventEntity::class,
         CourseCalendarStateEntity::class,
         DownloadCoursePreview::class,
-        CourseEnrollmentDetailsEntity::class
+        CourseEnrollmentDetailsEntity::class,
+        CourseDateEntity::class,
     ],
     autoMigrations = [
         AutoMigration(1, DATABASE_VERSION)
@@ -47,5 +50,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun courseDao(): CourseDao
     abstract fun dashboardDao(): DashboardDao
     abstract fun downloadDao(): DownloadDao
+    abstract fun datesDao(): DatesDao
     abstract fun calendarDao(): CalendarDao
 }

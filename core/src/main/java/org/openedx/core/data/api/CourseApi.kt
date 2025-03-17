@@ -114,6 +114,6 @@ interface CourseApi {
     @GET("/api/mobile/v1/course_dates/{username}/")
     suspend fun getUserDates(
         @Path("username") username: String,
-        @Query("page") page: Int = 1
+        @Query("page") page: Int
     ): CourseDatesResponse
 }
