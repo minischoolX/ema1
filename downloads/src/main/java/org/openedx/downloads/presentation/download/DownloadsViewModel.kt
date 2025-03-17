@@ -141,7 +141,8 @@ class DownloadsViewModel(
                             .sumOf { it.size }
                         val courseSize = _uiState.value.downloadCoursePreviews
                             .find { it.id == courseId }?.totalSize ?: 0
-                        val isSizeMatch: Boolean = downloadedSize.toDouble() / courseSize >= 0.95
+                        val isSizeMatch: Boolean =
+                            downloadedSize.toDouble() / courseSize >= SIZE_MATCH_THRESHOLD
                         determineCourseState(blockStates, isSizeMatch)
                     }
                     if (currentCourseState == DownloadedState.LOADING_COURSE_STRUCTURE &&
@@ -366,6 +367,10 @@ class DownloadsViewModel(
 
     private fun getCoursePreview(courseId: String): DownloadCoursePreview? {
         return _uiState.value.downloadCoursePreviews.find { it.id == courseId }
+    }
+
+    companion object {
+        const val SIZE_MATCH_THRESHOLD = 0.95
     }
 }
 

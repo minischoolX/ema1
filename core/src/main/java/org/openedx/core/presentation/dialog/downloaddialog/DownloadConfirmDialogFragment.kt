@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -62,8 +63,10 @@ class DownloadConfirmDialogFragment : DialogFragment(), DownloadDialog {
         setContent {
             OpenEdXTheme {
                 val dialogType =
-                    requireArguments().parcelable<DownloadConfirmDialogType>(ARG_DIALOG_TYPE) ?: return@OpenEdXTheme
-                val uiState = requireArguments().parcelable<DownloadDialogUIState>(ARG_UI_STATE) ?: return@OpenEdXTheme
+                    requireArguments().parcelable<DownloadConfirmDialogType>(ARG_DIALOG_TYPE)
+                        ?: return@OpenEdXTheme
+                val uiState = requireArguments().parcelable<DownloadDialogUIState>(ARG_UI_STATE)
+                    ?: return@OpenEdXTheme
                 val sizeSumString = uiState.sizeSum.toFileSize(1, false)
                 val dialogData = when (dialogType) {
                     DownloadConfirmDialogType.CONFIRM -> DownloadDialogResource(
@@ -150,7 +153,6 @@ private fun DownloadConfirmDialogView(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(scrollState)
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -173,7 +175,11 @@ private fun DownloadConfirmDialogView(
                     minSize = MaterialTheme.appTypography.titleLarge.fontSize.value - 1
                 )
             }
-            Column {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = DownloadDialogManager.listMaxSize)
+                    .verticalScroll(scrollState)
+            ) {
                 uiState.downloadDialogItems.forEach {
                     DownloadDialogItem(downloadDialogItem = it)
                 }

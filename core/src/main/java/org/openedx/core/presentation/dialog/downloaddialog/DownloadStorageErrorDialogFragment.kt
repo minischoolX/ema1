@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -69,7 +70,8 @@ class DownloadStorageErrorDialogFragment : DialogFragment(), DownloadDialog {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             OpenEdXTheme {
-                val uiState = requireArguments().parcelable<DownloadDialogUIState>(ARG_UI_STATE) ?: return@OpenEdXTheme
+                val uiState = requireArguments().parcelable<DownloadDialogUIState>(ARG_UI_STATE)
+                    ?: return@OpenEdXTheme
                 val downloadDialogResource = DownloadDialogResource(
                     title = stringResource(id = R.string.core_device_storage_full),
                     description = stringResource(id = R.string.core_download_device_storage_full_dialog_description),
@@ -119,7 +121,6 @@ private fun DownloadStorageErrorDialogView(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(scrollState)
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -142,7 +143,11 @@ private fun DownloadStorageErrorDialogView(
                     minSize = MaterialTheme.appTypography.titleLarge.fontSize.value - 1
                 )
             }
-            Column {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = DownloadDialogManager.listMaxSize)
+                    .verticalScroll(scrollState)
+            ) {
                 uiState.downloadDialogItems.forEach {
                     DownloadDialogItem(downloadDialogItem = it.copy(size = it.size * DOWNLOAD_SIZE_FACTOR))
                 }

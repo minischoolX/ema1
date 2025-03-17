@@ -173,7 +173,7 @@ fun DownloadsScreen(
                                 columns = GridCells.Fixed(2),
                                 verticalArrangement = Arrangement.spacedBy(20.dp),
                                 horizontalArrangement = Arrangement.spacedBy(20.dp),
-                                contentPadding = PaddingValues(bottom = 20.dp, top = 12.dp),
+                                contentPadding = PaddingValues(bottom = 46.dp, top = 12.dp),
                                 content = {
                                     items(uiState.downloadCoursePreviews) { item ->
                                         val downloadModels =
@@ -205,7 +205,7 @@ fun DownloadsScreen(
                         } else {
                             LazyColumn(
                                 modifier = contentWidth,
-                                contentPadding = PaddingValues(bottom = 20.dp, top = 12.dp),
+                                contentPadding = PaddingValues(bottom = 46.dp, top = 12.dp),
                                 verticalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
                                 items(uiState.downloadCoursePreviews) { item ->

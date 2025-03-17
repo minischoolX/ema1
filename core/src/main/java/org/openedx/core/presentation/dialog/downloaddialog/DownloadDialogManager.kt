@@ -1,5 +1,10 @@
 package org.openedx.core.presentation.dialog.downloaddialog
 
+import android.content.res.Configuration
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +19,7 @@ import org.openedx.core.module.DownloadWorkerController
 import org.openedx.core.module.db.DownloadModel
 import org.openedx.core.system.StorageManager
 import org.openedx.core.system.connection.NetworkConnection
+import org.openedx.foundation.presentation.rememberWindowSize
 
 interface DownloadDialogListener {
     fun onCancelClick()
@@ -34,6 +40,22 @@ class DownloadDialogManager(
     companion object {
         const val MAX_CELLULAR_SIZE = 104857600 // 100MB
         const val DOWNLOAD_SIZE_FACTOR = 2 // Multiplier to match required disk size
+
+        val listMaxSize: Dp
+            @Composable
+            get() {
+                val configuration = LocalConfiguration.current
+                val windowSize = rememberWindowSize()
+                return when {
+                    configuration.orientation == Configuration.ORIENTATION_PORTRAIT || windowSize.isTablet -> {
+                        200.dp
+                    }
+
+                    else -> {
+                        88.dp
+                    }
+                }
+            }
     }
 
     private val uiState = MutableSharedFlow<DownloadDialogUIState>()

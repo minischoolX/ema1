@@ -131,7 +131,6 @@ class CourseOfflineViewModel(
             val downloadDialogItem = DownloadDialogItem(
                 title = courseTitle,
                 size = totalSize,
-                icon = Icons.AutoMirrored.Outlined.InsertDriveFile
             )
             downloadDialogManager.showRemoveDownloadModelPopup(
                 downloadDialogItem = downloadDialogItem,
