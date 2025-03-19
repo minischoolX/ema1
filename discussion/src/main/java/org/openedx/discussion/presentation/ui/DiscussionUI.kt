@@ -50,6 +50,7 @@ import coil.request.ImageRequest
 import org.openedx.core.domain.model.ProfileImage
 import org.openedx.core.extension.TextConverter
 import org.openedx.core.ui.AutoSizeText
+import org.openedx.core.ui.HtmlTextView
 import org.openedx.core.ui.HyperlinkImageText
 import org.openedx.core.ui.IconText
 import org.openedx.core.ui.theme.OpenEdXTheme
@@ -162,11 +163,7 @@ fun ThreadMainItem(
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
-        HyperlinkImageText(
-            title = thread.title,
-            imageText = thread.parsedRenderedBody,
-            linkTextColor = MaterialTheme.appColors.primary
-        )
+        HtmlTextView(thread.rawBody)
         Spacer(modifier = Modifier.height(24.dp))
         Row(
             Modifier
