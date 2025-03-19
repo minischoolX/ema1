@@ -12,11 +12,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,6 +45,7 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -56,7 +55,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -374,23 +375,31 @@ private fun DiscussionResponsesScreen(
                                         }
 
                                         items(uiState.childComments) { comment ->
+                                            var itemHeight by remember { mutableIntStateOf(0) }
+                                            val boxHeight = if (itemHeight > 0) {
+                                                Modifier.height(with(LocalDensity.current) { itemHeight.toDp() })
+                                            } else {
+                                                Modifier
+                                            }
                                             Row(
                                                 Modifier
                                                     .fillMaxWidth()
-                                                    .height(IntrinsicSize.Min)
                                                     .padding(start = paddingContent),
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxHeight()
                                                         .width(1.dp)
+                                                        .then(boxHeight)
                                                         .background(MaterialTheme.appColors.cardViewBorder)
                                                 )
                                                 CommentMainItem(
                                                     modifier = Modifier
                                                         .padding(4.dp)
-                                                        .fillMaxWidth(),
+                                                        .fillMaxWidth()
+                                                        .onGloballyPositioned { coordinates ->
+                                                            itemHeight = coordinates.size.height
+                                                        },
                                                     comment = comment,
                                                     onClick = { action, commentId, bool ->
                                                         onItemClick(action, commentId, bool)
@@ -412,7 +421,11 @@ private fun DiscussionResponsesScreen(
                                             }
                                         }
                                     }
-                                    if (scrollState.shouldLoadMore(firstVisibleIndex, LOAD_MORE_THRESHOLD)) {
+                                    if (scrollState.shouldLoadMore(
+                                            firstVisibleIndex,
+                                            LOAD_MORE_THRESHOLD
+                                        )
+                                    ) {
                                         paginationCallBack()
                                     }
                                 }

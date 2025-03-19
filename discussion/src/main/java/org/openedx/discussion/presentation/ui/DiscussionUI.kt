@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package org.openedx.discussion.presentation.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
@@ -31,7 +29,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
@@ -50,9 +47,8 @@ import coil.request.ImageRequest
 import org.openedx.core.domain.model.ProfileImage
 import org.openedx.core.extension.TextConverter
 import org.openedx.core.ui.AutoSizeText
-import org.openedx.core.ui.HtmlTextView
-import org.openedx.core.ui.HyperlinkImageText
 import org.openedx.core.ui.IconText
+import org.openedx.core.ui.RenderHtmlContent
 import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appShapes
@@ -163,7 +159,9 @@ fun ThreadMainItem(
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
-        HtmlTextView(thread.rawBody)
+        RenderHtmlContent(
+            html = thread.rawBody,
+        )
         Spacer(modifier = Modifier.height(24.dp))
         Row(
             Modifier
@@ -313,9 +311,8 @@ fun CommentItem(
                 )
             }
             Spacer(modifier = Modifier.height(14.dp))
-            HyperlinkImageText(
-                imageText = comment.parsedRenderedBody,
-                linkTextColor = MaterialTheme.appColors.primary
+            RenderHtmlContent(
+                html = comment.rawBody,
             )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -452,9 +449,8 @@ fun CommentMainItem(
                 }
             }
             Spacer(modifier = Modifier.height(14.dp))
-            HyperlinkImageText(
-                imageText = comment.parsedRenderedBody,
-                linkTextColor = MaterialTheme.appColors.primary
+            RenderHtmlContent(
+                html = comment.rawBody,
             )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
