@@ -33,6 +33,9 @@ interface DownloadDao {
     @Query("DELETE FROM download_model WHERE id in (:ids)")
     suspend fun removeAllDownloadModels(ids: List<String>)
 
+    @Query("SELECT * FROM download_model WHERE courseId = :courseId")
+    suspend fun getDownloadModelsByCourseIds(courseId: String): List<DownloadModelEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOfflineXBlockProgress(offlineXBlockProgress: OfflineXBlockProgress)
 

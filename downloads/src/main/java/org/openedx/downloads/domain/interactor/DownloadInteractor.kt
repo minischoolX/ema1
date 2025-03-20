@@ -7,9 +7,8 @@ class DownloadInteractor(
 ) {
     fun getDownloadCoursesPreview(refresh: Boolean) = repository.getDownloadCoursesPreview(refresh)
 
-    fun getDownloadModels() = repository.getDownloadModels()
-
-    suspend fun getAllDownloadModels() = repository.getAllDownloadModels()
+    suspend fun getDownloadModelsByCourseIds(courseId: String) =
+        repository.getDownloadModelsByCourseIds(courseId)
 
     suspend fun getCourseStructureFromCache(courseId: String) =
         repository.getCourseStructureFromCache(courseId)

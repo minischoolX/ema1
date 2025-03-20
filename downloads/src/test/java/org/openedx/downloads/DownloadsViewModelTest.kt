@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -186,6 +187,7 @@ class DownloadsViewModelTest {
         progress = null
     )
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
@@ -199,8 +201,7 @@ class DownloadsViewModelTest {
         }
         coEvery { interactor.getCourseStructureFromCache("course1") } returns courseStructure
         coEvery { interactor.getCourseStructure("course1") } returns courseStructure
-        coEvery { interactor.getDownloadModels() } returns flowOf(emptyList())
-        coEvery { interactor.getAllDownloadModels() } returns emptyList()
+        coEvery { interactor.getDownloadModelsByCourseIds(any()) } returns emptyList()
         coEvery { downloadDao.getAllDataFlow() } returns flowOf(
             listOf(
                 DownloadModelEntity.createFrom(
@@ -210,6 +211,7 @@ class DownloadsViewModelTest {
         )
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `onSettingsClick should navigate to settings`() = runTest {
         val viewModel = DownloadsViewModel(
@@ -237,6 +239,7 @@ class DownloadsViewModelTest {
         verify(exactly = 1) { downloadsRouter.navigateToSettings(fragmentManager) }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `downloadCourse should show download dialog`() = runTest {
         val viewModel = DownloadsViewModel(
@@ -278,6 +281,7 @@ class DownloadsViewModelTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `cancelDownloading should update courseDownloadState to NOT_DOWNLOADED and cancel download job`() =
         runTest {
@@ -308,12 +312,13 @@ class DownloadsViewModelTest {
             viewModel.cancelDownloading("course1")
             advanceUntilIdle()
 
-            coVerify { interactor.getAllDownloadModels() }
+            coVerify { interactor.getDownloadModelsByCourseIds(any()) }
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `removeDownloads should show remove popup with correct parameters`() = runTest {
-        coEvery { interactor.getDownloadModels() } returns flowOf(listOf(downloadModel))
+        coEvery { interactor.getDownloadModelsByCourseIds(any()) } returns listOf(downloadModel)
 
         val viewModel = DownloadsViewModel(
             downloadsRouter,
@@ -350,6 +355,7 @@ class DownloadsViewModelTest {
         verify(exactly = 1) { analytics.logEvent(any(), any()) }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `refreshData no internet error should emit snack bar message`() = runTest {
         every { networkConnection.isOnline() } returns true

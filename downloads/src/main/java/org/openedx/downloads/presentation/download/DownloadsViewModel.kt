@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -209,15 +208,17 @@ class DownloadsViewModel(
         }
     }
 
-    private suspend fun emitErrorMessage(e: Throwable) {
-        val text = if (e.isInternetError()) {
-            R.string.core_error_no_connection
-        } else {
-            R.string.core_error_unknown_error
+    private fun emitErrorMessage(e: Throwable) {
+        viewModelScope.launch {
+            val text = if (e.isInternetError()) {
+                R.string.core_error_no_connection
+            } else {
+                R.string.core_error_unknown_error
+            }
+            _uiMessage.emit(
+                UIMessage.SnackBarMessage(resourceManager.getString(text))
+            )
         }
-        _uiMessage.emit(
-            UIMessage.SnackBarMessage(resourceManager.getString(text))
-        )
     }
 
     fun refreshData() {
@@ -235,9 +236,7 @@ class DownloadsViewModel(
         } catch (e: Exception) {
             logEvent(DownloadsAnalyticsEvent.DOWNLOAD_ERROR)
             updateCourseState(courseId, DownloadedState.NOT_DOWNLOADED)
-            viewModelScope.launch {
-                emitErrorMessage(e)
-            }
+            emitErrorMessage(e)
         }
     }
 
@@ -245,8 +244,8 @@ class DownloadsViewModel(
         logEvent(DownloadsAnalyticsEvent.CANCEL_DOWNLOAD_CLICKED)
         viewModelScope.launch {
             downloadJobs[courseId]?.cancel()
-            interactor.getAllDownloadModels()
-                .filter { it.courseId == courseId && it.downloadedState.isWaitingOrDownloading }
+            interactor.getDownloadModelsByCourseIds(courseId)
+                .filter { it.downloadedState.isWaitingOrDownloading }
                 .forEach { removeBlockDownloadModel(it.id) }
         }
     }
@@ -254,9 +253,7 @@ class DownloadsViewModel(
     fun removeDownloads(fragmentManager: FragmentManager, courseId: String) {
         logEvent(DownloadsAnalyticsEvent.REMOVE_DOWNLOAD_CLICKED)
         viewModelScope.launch {
-            val downloadModels = interactor.getDownloadModels().first().filter {
-                it.courseId == courseId
-            }
+            val downloadModels = interactor.getDownloadModelsByCourseIds(courseId)
             val downloadedModels = downloadModels.filter {
                 it.downloadedState == DownloadedState.DOWNLOADED
             }
@@ -292,23 +289,29 @@ class DownloadsViewModel(
     }
 
     private fun showDownloadPopup(fragmentManager: FragmentManager, courseId: String) {
-        val coursePreview = getCoursePreview(courseId) ?: return
-        downloadDialogManager.showPopup(
-            coursePreview = coursePreview,
-            isBlocksDownloaded = false,
-            fragmentManager = fragmentManager,
-            removeDownloadModels = ::removeDownloadModels,
-            saveDownloadModels = {
-                initiateSaveDownloadModels(courseId)
-            },
-            onDismissClick = {
-                logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CANCELLED)
-                updateCourseState(courseId, DownloadedState.NOT_DOWNLOADED)
-            },
-            onConfirmClick = {
-                logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CONFIRMED)
-            }
-        )
+        viewModelScope.launch {
+            val coursePreview = getCoursePreview(courseId) ?: return@launch
+            val downloadModels = interactor.getDownloadModelsByCourseIds(courseId)
+            val downloadedModelsSize = downloadModels
+                .filter { it.downloadedState == DownloadedState.DOWNLOADED }
+                .sumOf { it.size }
+            downloadDialogManager.showPopup(
+                coursePreview = coursePreview.copy(totalSize = coursePreview.totalSize - downloadedModelsSize),
+                isBlocksDownloaded = false,
+                fragmentManager = fragmentManager,
+                removeDownloadModels = ::removeDownloadModels,
+                saveDownloadModels = {
+                    initiateSaveDownloadModels(courseId)
+                },
+                onDismissClick = {
+                    logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CANCELLED)
+                    updateCourseState(courseId, DownloadedState.NOT_DOWNLOADED)
+                },
+                onConfirmClick = {
+                    logEvent(DownloadsAnalyticsEvent.DOWNLOAD_CONFIRMED)
+                }
+            )
+        }
     }
 
     private fun initiateSaveDownloadModels(courseId: String) {

@@ -1,7 +1,6 @@
 package org.openedx.downloads.data.repository
 
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import org.openedx.core.data.api.CourseApi
 import org.openedx.core.data.storage.CorePreferences
 import org.openedx.core.data.storage.CourseDao
@@ -28,10 +27,6 @@ class DownloadRepository(
         dao.insertDownloadCoursePreview(downloadCoursesPreviewEntity)
     }
 
-    fun getDownloadModels() = dao.getAllDataFlow().map { list ->
-        list.map { it.mapToDomain() }
-    }
-
     suspend fun getCourseStructureFromCache(courseId: String): CourseStructure {
         val cachedCourseStructure = courseDao.getCourseStructureById(courseId)
         if (cachedCourseStructure != null) {
@@ -56,5 +51,6 @@ class DownloadRepository(
         }
     }
 
-    suspend fun getAllDownloadModels() = dao.readAllData().map { it.mapToDomain() }
+    suspend fun getDownloadModelsByCourseIds(courseId: String) =
+        dao.getDownloadModelsByCourseIds(courseId).map { it.mapToDomain() }
 }
