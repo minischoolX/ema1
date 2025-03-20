@@ -550,7 +550,8 @@ val screenModule = module {
             networkConnection = get(),
             resourceManager = get(),
             datesInteractor = get(),
-            corePreferences = get()
+            corePreferences = get(),
+            analytics = get()
         )
     }
 }
