@@ -1,5 +1,7 @@
 package org.openedx.downloads.presentation.download
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.School
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -262,6 +264,7 @@ class DownloadsViewModel(
             val downloadDialogItem = DownloadDialogItem(
                 title = title,
                 size = totalSize,
+                icon = Icons.Default.School
             )
             downloadDialogManager.showRemoveDownloadModelPopup(
                 downloadDialogItem = downloadDialogItem,

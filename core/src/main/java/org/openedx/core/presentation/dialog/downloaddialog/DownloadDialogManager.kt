@@ -1,6 +1,8 @@
 package org.openedx.core.presentation.dialog.downloaddialog
 
 import android.content.res.Configuration
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.School
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
@@ -327,7 +329,8 @@ class DownloadDialogManager(
             val downloadDialogItems = listOf(
                 DownloadDialogItem(
                     title = coursePreview.name,
-                    size = coursePreview.totalSize
+                    size = coursePreview.totalSize,
+                    icon = Icons.Default.School
                 )
             )
 
