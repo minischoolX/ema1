@@ -126,7 +126,8 @@ class CourseOfflineViewModel(
 
     fun deleteAll(fragmentManager: FragmentManager) {
         viewModelScope.launch {
-            val downloadModels = courseInteractor.getAllDownloadModels().filter { it.courseId == courseId }
+            val downloadModels =
+                courseInteractor.getAllDownloadModels().filter { it.courseId == courseId }
             val totalSize = downloadModels.sumOf { it.size }
             val downloadDialogItem = DownloadDialogItem(
                 title = courseTitle,
@@ -169,7 +170,8 @@ class CourseOfflineViewModel(
                 val completedDownloads =
                     downloadModels.filter { it.downloadedState.isDownloaded && it.courseId == courseId }
                 val completedDownloadIds = completedDownloads.map { it.id }
-                val downloadedBlocks = courseStructure.blockData.filter { it.id in completedDownloadIds }
+                val downloadedBlocks =
+                    courseStructure.blockData.filter { it.id in completedDownloadIds }
 
                 updateUIState(
                     totalDownloadableSize,
@@ -190,14 +192,19 @@ class CourseOfflineViewModel(
         val largestDownloads = completedDownloads
             .sortedByDescending { it.size }
             .take(n = 5)
-
+        val progressBarValue = downloadedSize.toFloat() / totalDownloadableSize.toFloat()
+        val readyToDownloadSize = if (progressBarValue >= 1) {
+            0
+        } else {
+            totalDownloadableSize - realDownloadedSize
+        }
         _uiState.update {
             it.copy(
                 isHaveDownloadableBlocks = true,
                 largestDownloads = largestDownloads,
-                readyToDownloadSize = (totalDownloadableSize - downloadedSize).toFileSize(1, false),
+                readyToDownloadSize = readyToDownloadSize.toFileSize(1, false),
                 downloadedSize = realDownloadedSize.toFileSize(1, false),
-                progressBarValue = downloadedSize.toFloat() / totalDownloadableSize.toFloat()
+                progressBarValue = progressBarValue
             )
         }
     }
