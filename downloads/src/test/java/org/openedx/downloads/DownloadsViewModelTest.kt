@@ -84,7 +84,12 @@ class DownloadsViewModelTest {
     private val unknownError = "Unknown error"
 
     private val downloadCoursePreview =
-        DownloadCoursePreview(id = "course1", name = "", image = "", totalSize = 0)
+        DownloadCoursePreview(
+            id = "course1",
+            name = "",
+            image = "",
+            totalSize = DownloadDialogManager.MAX_CELLULAR_SIZE.toLong()
+        )
     private val assignmentProgress = AssignmentProgress(
         assignmentType = "Homework",
         numPointsEarned = 1f,

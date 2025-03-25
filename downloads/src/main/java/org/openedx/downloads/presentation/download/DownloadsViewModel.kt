@@ -106,11 +106,7 @@ class DownloadsViewModel(
         viewModelScope.launch {
             courseNotifier.notifier.collect { notifier ->
                 when (notifier) {
-                    is CourseStructureGot -> {
-                        fetchDownloads(refresh = true)
-                    }
-
-                    is CourseStructureUpdated -> {
+                    is CourseStructureGot, is CourseStructureUpdated -> {
                         fetchDownloads(refresh = true)
                     }
                 }
