@@ -104,16 +104,16 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             R.id.fragmentDownloads to resources.getString(R.string.app_navigation_downloads),
             R.id.fragmentProfile to resources.getString(R.string.app_navigation_profile),
         )
-        val tabIcons = mapOf(
-            R.id.fragmentLearn to R.drawable.app_ic_rows,
-            R.id.fragmentDiscover to R.drawable.app_ic_home,
-            R.id.fragmentDownloads to R.drawable.app_ic_download_cloud,
-            R.id.fragmentProfile to R.drawable.app_ic_profile
+        val tabIconSelectors = mapOf(
+            R.id.fragmentLearn to R.drawable.app_ic_learn_selector,
+            R.id.fragmentDiscover to R.drawable.app_ic_discover_selector,
+            R.id.fragmentDownloads to R.drawable.app_ic_downloads_selector,
+            R.id.fragmentProfile to R.drawable.app_ic_profile_selector
         )
 
         for ((id, _) in tabList) {
             val menuItem = menu.add(Menu.NONE, id, Menu.NONE, tabTitles[id] ?: "")
-            tabIcons[id]?.let { menuItem.setIcon(it) }
+            tabIconSelectors[id]?.let { menuItem.setIcon(it) }
         }
     }
 
