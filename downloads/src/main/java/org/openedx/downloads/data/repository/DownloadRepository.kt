@@ -39,10 +39,10 @@ class DownloadRepository(
     suspend fun getCourseStructure(courseId: String): CourseStructure {
         try {
             val response = api.getCourseStructure(
-                "stale-if-error=0",
-                "v4",
-                corePreferences.user?.username,
-                courseId
+                cacheControlHeaderParam = "stale-if-error=0",
+                blocksApiVersion = "v4",
+                username = corePreferences.user?.username,
+                courseId = courseId
             )
             courseDao.insertCourseStructureEntity(response.mapToRoomEntity())
             return response.mapToDomain()
