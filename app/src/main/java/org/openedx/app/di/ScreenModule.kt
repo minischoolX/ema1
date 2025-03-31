@@ -235,6 +235,7 @@ val screenModule = module {
 
     single { CourseRepository(get(), get(), get(), get(), get()) }
     factory { CourseInteractor(get()) }
+    single<org.openedx.core.domain.interactor.CourseInteractor> { get<CourseInteractor>() }
 
     viewModel { (pathId: String, infoType: String) ->
         CourseInfoViewModel(
@@ -551,7 +552,8 @@ val screenModule = module {
             resourceManager = get(),
             datesInteractor = get(),
             corePreferences = get(),
-            analytics = get()
+            analytics = get(),
+            calendarSyncScheduler = get()
         )
     }
 }

@@ -3,6 +3,7 @@ package org.openedx.course.data.storage
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import org.openedx.core.data.model.room.BlockDb
+import org.openedx.core.data.model.room.CourseDateDB
 import org.openedx.core.data.model.room.VideoInfoDb
 import org.openedx.core.data.model.room.discovery.CourseDateBlockDb
 import org.openedx.foundation.extension.genericType
@@ -67,6 +68,18 @@ class CourseConverter {
     @TypeConverter
     fun toListOfCourseDateBlockDb(value: String): List<CourseDateBlockDb> {
         val type = genericType<List<CourseDateBlockDb>>()
+        return Gson().fromJson(value, type)
+    }
+
+    @TypeConverter
+    fun fromListOfCourseDateDB(value: List<CourseDateDB>): String {
+        val json = Gson().toJson(value)
+        return json.toString()
+    }
+
+    @TypeConverter
+    fun toListOfCourseDateDB(value: String): List<CourseDateDB> {
+        val type = genericType<List<CourseDateDB>>()
         return Gson().fromJson(value, type)
     }
 }
