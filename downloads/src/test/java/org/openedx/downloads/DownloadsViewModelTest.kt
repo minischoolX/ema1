@@ -389,7 +389,6 @@ class DownloadsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(noInternet, (deferred.await() as? UIMessage.SnackBarMessage)?.message)
-        // Also verify that the refreshing flag is cleared.
         assertFalse(viewModel.uiState.value.isRefreshing)
     }
 }
