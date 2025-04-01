@@ -92,6 +92,10 @@ class Config(context: Context) {
         return getObjectOrNewInstance(DASHBOARD, DashboardConfig::class.java)
     }
 
+    fun getDownloadsConfig(): AppLevelDownloadsConfig {
+        return getExperimentalFeaturesConfig().appLevelDownloadsConfig
+    }
+
     fun getBranchConfig(): BranchConfig {
         return getObjectOrNewInstance(BRANCH, BranchConfig::class.java)
     }
@@ -118,6 +122,10 @@ class Config(context: Context) {
 
     fun isBrowserRegistrationEnabled(): Boolean {
         return getBoolean(BROWSER_REGISTRATION, false)
+    }
+
+    private fun getExperimentalFeaturesConfig(): ExperimentalFeaturesConfig {
+        return getObjectOrNewInstance(EXPERIMENTAL_FEATURES, ExperimentalFeaturesConfig::class.java)
     }
 
     private fun getString(key: String, defaultValue: String = ""): String {
@@ -179,6 +187,7 @@ class Config(context: Context) {
         private const val DISCOVERY = "DISCOVERY"
         private const val PROGRAM = "PROGRAM"
         private const val DASHBOARD = "DASHBOARD"
+        private const val EXPERIMENTAL_FEATURES = "EXPERIMENTAL_FEATURES"
         private const val BRANCH = "BRANCH"
         private const val UI_COMPONENTS = "UI_COMPONENTS"
         private const val PLATFORM_NAME = "PLATFORM_NAME"

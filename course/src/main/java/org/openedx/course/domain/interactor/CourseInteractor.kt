@@ -2,6 +2,7 @@ package org.openedx.course.domain.interactor
 
 import kotlinx.coroutines.flow.Flow
 import org.openedx.core.BlockType
+import org.openedx.core.domain.interactor.CourseInteractor
 import org.openedx.core.domain.model.Block
 import org.openedx.core.domain.model.CourseEnrollmentDetails
 import org.openedx.core.domain.model.CourseStructure
@@ -10,7 +11,7 @@ import org.openedx.course.data.repository.CourseRepository
 @Suppress("TooManyFunctions")
 class CourseInteractor(
     private val repository: CourseRepository
-) {
+) : CourseInteractor {
 
     suspend fun getCourseStructureFlow(
         courseId: String,
@@ -19,14 +20,14 @@ class CourseInteractor(
         return repository.getCourseStructureFlow(courseId, forceRefresh)
     }
 
-    suspend fun getCourseStructure(
+    override suspend fun getCourseStructure(
         courseId: String,
-        isNeedRefresh: Boolean = false
+        isNeedRefresh: Boolean
     ): CourseStructure {
         return repository.getCourseStructure(courseId, isNeedRefresh)
     }
 
-    suspend fun getCourseStructureFromCache(courseId: String): CourseStructure {
+    override suspend fun getCourseStructureFromCache(courseId: String): CourseStructure {
         return repository.getCourseStructureFromCache(courseId)
     }
 
@@ -101,7 +102,7 @@ class CourseInteractor(
 
     fun getDownloadModels() = repository.getDownloadModels()
 
-    suspend fun getAllDownloadModels() = repository.getAllDownloadModels()
+    override suspend fun getAllDownloadModels() = repository.getAllDownloadModels()
 
     suspend fun saveXBlockProgress(blockId: String, courseId: String, jsonProgress: String) {
         repository.saveOfflineXBlockProgress(blockId, courseId, jsonProgress)

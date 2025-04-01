@@ -33,6 +33,8 @@ class MainViewModel(
     val isDiscoveryTypeWebView get() = config.getDiscoveryConfig().isViewTypeWebView()
     val getDiscoveryFragment get() = DiscoveryNavigator(isDiscoveryTypeWebView).getDiscoveryFragment()
 
+    val isDownloadsFragmentEnabled get() = config.getDownloadsConfig().isEnabled
+
     override fun onCreate(owner: LifecycleOwner) {
         super.onCreate(owner)
         notifier.notifier
@@ -55,6 +57,10 @@ class MainViewModel(
 
     fun logDiscoveryTabClickedEvent() {
         logScreenEvent(AppAnalyticsEvent.DISCOVER)
+    }
+
+    fun logDownloadsTabClickedEvent() {
+        logScreenEvent(AppAnalyticsEvent.DOWNLOADS)
     }
 
     fun logProfileTabClickedEvent() {

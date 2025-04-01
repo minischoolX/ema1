@@ -45,6 +45,7 @@ import org.openedx.foundation.extension.parcelable
 import org.openedx.foundation.presentation.WindowSize
 import org.openedx.foundation.presentation.rememberWindowSize
 import org.openedx.foundation.presentation.windowSizeValue
+import org.openedx.core.R as coreR
 import org.openedx.course.R as courseR
 
 class NotAvailableUnitFragment : Fragment() {
@@ -80,14 +81,15 @@ class NotAvailableUnitFragment : Fragment() {
                     }
 
                     NotAvailableUnitType.OFFLINE_UNSUPPORTED -> {
-                        title = stringResource(id = courseR.string.course_not_available_offline)
-                        description = stringResource(id = courseR.string.course_explore_other_parts_when_reconnect)
+                        title = stringResource(id = coreR.string.core_not_available_offline)
+                        description =
+                            stringResource(id = coreR.string.core_explore_other_parts_when_reconnect)
                     }
 
                     NotAvailableUnitType.NOT_DOWNLOADED -> {
-                        title = stringResource(id = courseR.string.course_not_downloaded)
+                        title = stringResource(id = coreR.string.core_not_downloaded)
                         description =
-                            stringResource(id = courseR.string.course_explore_other_parts_when_reconnect_or_download)
+                            stringResource(id = coreR.string.core_explore_other_parts_when_reconnect_or_download)
                     }
 
                     else -> {

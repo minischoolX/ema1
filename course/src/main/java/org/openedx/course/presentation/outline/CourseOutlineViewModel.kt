@@ -28,6 +28,7 @@ import org.openedx.core.module.download.BaseDownloadViewModel
 import org.openedx.core.module.download.DownloadHelper
 import org.openedx.core.presentation.CoreAnalytics
 import org.openedx.core.presentation.course.CourseViewMode
+import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.presentation.settings.calendarsync.CalendarSyncDialogType
 import org.openedx.core.system.connection.NetworkConnection
 import org.openedx.core.system.notifier.CalendarSyncEvent.CreateCalendarSyncEvent
@@ -40,7 +41,6 @@ import org.openedx.course.presentation.CourseAnalytics
 import org.openedx.course.presentation.CourseAnalyticsEvent
 import org.openedx.course.presentation.CourseAnalyticsKey
 import org.openedx.course.presentation.CourseRouter
-import org.openedx.course.presentation.download.DownloadDialogManager
 import org.openedx.foundation.extension.isInternetError
 import org.openedx.foundation.presentation.UIMessage
 import org.openedx.foundation.system.ResourceManager
@@ -65,7 +65,6 @@ class CourseOutlineViewModel(
     workerController: DownloadWorkerController,
     downloadHelper: DownloadHelper,
 ) : BaseDownloadViewModel(
-    courseId,
     downloadDao,
     preferencesManager,
     workerController,
@@ -136,10 +135,10 @@ class CourseOutlineViewModel(
         getCourseData()
     }
 
-    override fun saveDownloadModels(folder: String, id: String) {
+    override fun saveDownloadModels(folder: String, courseId: String, id: String) {
         if (preferencesManager.videoSettings.wifiDownloadOnly) {
             if (networkConnection.isWifiConnected()) {
-                super.saveDownloadModels(folder, id)
+                super.saveDownloadModels(folder, courseId, id)
             } else {
                 viewModelScope.launch {
                     _uiMessage.emit(
@@ -150,7 +149,7 @@ class CourseOutlineViewModel(
                 }
             }
         } else {
-            super.saveDownloadModels(folder, id)
+            super.saveDownloadModels(folder, courseId, id)
         }
     }
 
@@ -472,7 +471,7 @@ class CourseOutlineViewModel(
                     fragmentManager = fragmentManager,
                     removeDownloadModels = ::removeDownloadModels,
                     saveDownloadModels = { blockId ->
-                        saveDownloadModels(fileUtil.getExternalAppDir().path, blockId)
+                        saveDownloadModels(fileUtil.getExternalAppDir().path, courseId, blockId)
                     }
                 )
             }
@@ -499,7 +498,11 @@ class CourseOutlineViewModel(
                     outdatedBlockIds.forEach { blockId ->
                         interactor.removeDownloadModel(blockId)
                     }
-                    saveDownloadModels(fileUtil.getExternalAppDir().path, outdatedBlockIds)
+                    saveDownloadModels(
+                        fileUtil.getExternalAppDir().path,
+                        courseId,
+                        outdatedBlockIds
+                    )
                 }
                 isOfflineBlocksUpToDate = true
             }

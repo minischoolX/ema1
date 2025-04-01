@@ -21,10 +21,10 @@ import org.openedx.core.module.db.FileType
 import org.openedx.core.module.download.BaseDownloadViewModel
 import org.openedx.core.module.download.DownloadHelper
 import org.openedx.core.presentation.CoreAnalytics
+import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogItem
+import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.system.connection.NetworkConnection
 import org.openedx.course.domain.interactor.CourseInteractor
-import org.openedx.course.presentation.download.DownloadDialogItem
-import org.openedx.course.presentation.download.DownloadDialogManager
 import org.openedx.foundation.extension.toFileSize
 import org.openedx.foundation.utils.FileUtil
 
@@ -41,7 +41,6 @@ class CourseOfflineViewModel(
     workerController: DownloadWorkerController,
     downloadHelper: DownloadHelper,
 ) : BaseDownloadViewModel(
-    courseId,
     downloadDao,
     preferencesManager,
     workerController,
@@ -100,7 +99,7 @@ class CourseOfflineViewModel(
                 fragmentManager = fragmentManager,
                 removeDownloadModels = ::removeDownloadModels,
                 saveDownloadModels = { blockId ->
-                    saveDownloadModels(fileUtil.getExternalAppDir().path, blockId)
+                    saveDownloadModels(fileUtil.getExternalAppDir().path, courseId, blockId)
                 }
             )
         }
@@ -127,12 +126,12 @@ class CourseOfflineViewModel(
 
     fun deleteAll(fragmentManager: FragmentManager) {
         viewModelScope.launch {
-            val downloadModels = courseInteractor.getAllDownloadModels().filter { it.courseId == courseId }
+            val downloadModels =
+                courseInteractor.getAllDownloadModels().filter { it.courseId == courseId }
             val totalSize = downloadModels.sumOf { it.size }
             val downloadDialogItem = DownloadDialogItem(
                 title = courseTitle,
                 size = totalSize,
-                icon = Icons.AutoMirrored.Outlined.InsertDriveFile
             )
             downloadDialogManager.showRemoveDownloadModelPopup(
                 downloadDialogItem = downloadDialogItem,
@@ -171,7 +170,8 @@ class CourseOfflineViewModel(
                 val completedDownloads =
                     downloadModels.filter { it.downloadedState.isDownloaded && it.courseId == courseId }
                 val completedDownloadIds = completedDownloads.map { it.id }
-                val downloadedBlocks = courseStructure.blockData.filter { it.id in completedDownloadIds }
+                val downloadedBlocks =
+                    courseStructure.blockData.filter { it.id in completedDownloadIds }
 
                 updateUIState(
                     totalDownloadableSize,
@@ -192,14 +192,19 @@ class CourseOfflineViewModel(
         val largestDownloads = completedDownloads
             .sortedByDescending { it.size }
             .take(n = 5)
-
+        val progressBarValue = downloadedSize.toFloat() / totalDownloadableSize.toFloat()
+        val readyToDownloadSize = if (progressBarValue >= 1) {
+            0
+        } else {
+            totalDownloadableSize - realDownloadedSize
+        }
         _uiState.update {
             it.copy(
                 isHaveDownloadableBlocks = true,
                 largestDownloads = largestDownloads,
-                readyToDownloadSize = (totalDownloadableSize - downloadedSize).toFileSize(1, false),
+                readyToDownloadSize = readyToDownloadSize.toFileSize(1, false),
                 downloadedSize = realDownloadedSize.toFileSize(1, false),
-                progressBarValue = downloadedSize.toFloat() / totalDownloadableSize.toFloat()
+                progressBarValue = progressBarValue
             )
         }
     }

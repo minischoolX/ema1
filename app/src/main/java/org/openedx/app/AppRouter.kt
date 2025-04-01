@@ -44,6 +44,7 @@ import org.openedx.discussion.presentation.responses.DiscussionResponsesFragment
 import org.openedx.discussion.presentation.search.DiscussionSearchThreadFragment
 import org.openedx.discussion.presentation.threads.DiscussionAddThreadFragment
 import org.openedx.discussion.presentation.threads.DiscussionThreadsFragment
+import org.openedx.downloads.presentation.DownloadsRouter
 import org.openedx.profile.domain.model.Account
 import org.openedx.profile.presentation.ProfileRouter
 import org.openedx.profile.presentation.anothersaccount.AnothersProfileFragment
@@ -67,7 +68,8 @@ class AppRouter :
     ProfileRouter,
     AppUpgradeRouter,
     WhatsNewRouter,
-    CalendarRouter {
+    CalendarRouter,
+    DownloadsRouter {
 
     // region AuthRouter
     override fun navigateToMain(

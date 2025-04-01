@@ -71,7 +71,6 @@ import org.openedx.core.ui.displayCutoutForLandscape
 import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appTypography
-import org.openedx.course.R
 import org.openedx.course.presentation.videos.CourseVideoViewModel
 import org.openedx.course.presentation.videos.CourseVideosUIState
 import org.openedx.foundation.extension.toFileSize
@@ -81,6 +80,7 @@ import org.openedx.foundation.presentation.WindowType
 import org.openedx.foundation.presentation.windowSizeValue
 import org.openedx.foundation.utils.FileUtil
 import java.util.Date
+import org.openedx.core.R as coreR
 
 @Composable
 fun CourseVideosScreen(
@@ -132,12 +132,16 @@ fun CourseVideosScreen(
             )
         },
         onDownloadAllClick = { isAllBlocksDownloadedOrDownloading ->
-            viewModel.logBulkDownloadToggleEvent(!isAllBlocksDownloadedOrDownloading)
+            viewModel.logBulkDownloadToggleEvent(
+                !isAllBlocksDownloadedOrDownloading,
+                viewModel.courseId
+            )
             if (isAllBlocksDownloadedOrDownloading) {
                 viewModel.removeAllDownloadModels()
             } else {
                 viewModel.saveAllDownloadModels(
-                    fileUtil.getExternalAppDir().path
+                    fileUtil.getExternalAppDir().path,
+                    viewModel.courseId
                 )
             }
         },
@@ -308,12 +312,12 @@ private fun CourseVideosUI(
             AlertDialog(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.course_download_big_files_confirmation_title)
+                        text = stringResource(id = coreR.string.core_download_big_files_confirmation_title)
                     )
                 },
                 text = {
                     Text(
-                        text = stringResource(id = R.string.course_download_big_files_confirmation_text)
+                        text = stringResource(id = coreR.string.core_download_big_files_confirmation_text)
                     )
                 },
                 onDismissRequest = {
@@ -344,14 +348,15 @@ private fun CourseVideosUI(
         }
 
         if (isDeleteDownloadsConfirmationShowed) {
-            val downloadModelsSize = (uiState as? CourseVideosUIState.CourseData)?.downloadModelsSize
+            val downloadModelsSize =
+                (uiState as? CourseVideosUIState.CourseData)?.downloadModelsSize
             val isDownloadedAllVideos =
                 downloadModelsSize?.isAllBlocksDownloadedOrDownloading == true &&
                         downloadModelsSize.remainingCount == 0
             val dialogTextId = if (isDownloadedAllVideos) {
-                R.string.course_delete_confirmation
+                coreR.string.core_delete_confirmation
             } else {
-                R.string.course_delete_in_process_confirmation
+                coreR.string.core_delete_in_process_confirmation
             }
 
             AlertDialog(
@@ -402,7 +407,7 @@ private fun CourseVideosUI(
                 text = {
                     Text(
                         text = stringResource(
-                            id = R.string.course_delete_download_confirmation_text,
+                            id = coreR.string.core_delete_download_confirmation_text,
                             deleteDownloadBlock?.displayName ?: ""
                         )
                     )

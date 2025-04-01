@@ -9,6 +9,7 @@ import org.openedx.core.data.model.BlocksCompletionBody
 import org.openedx.core.data.model.room.OfflineXBlockProgress
 import org.openedx.core.data.model.room.XBlockProgressData
 import org.openedx.core.data.storage.CorePreferences
+import org.openedx.core.data.storage.CourseDao
 import org.openedx.core.domain.model.CourseComponentStatus
 import org.openedx.core.domain.model.CourseDatesBannerInfo
 import org.openedx.core.domain.model.CourseDatesResult
@@ -18,7 +19,6 @@ import org.openedx.core.exception.NoCachedDataException
 import org.openedx.core.extension.channelFlowWithAwait
 import org.openedx.core.module.db.DownloadDao
 import org.openedx.core.system.connection.NetworkConnection
-import org.openedx.course.data.storage.CourseDao
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -218,7 +218,11 @@ class CourseRepository(
         submitOfflineXBlockProgress(blockId, courseId, jsonProgressData)
     }
 
-    private suspend fun submitOfflineXBlockProgress(blockId: String, courseId: String, jsonProgressData: String?) {
+    private suspend fun submitOfflineXBlockProgress(
+        blockId: String,
+        courseId: String,
+        jsonProgressData: String?
+    ) {
         if (!jsonProgressData.isNullOrEmpty()) {
             val parts = mutableListOf<MultipartBody.Part>()
             val decodedQuery = URLDecoder.decode(jsonProgressData, StandardCharsets.UTF_8.name())

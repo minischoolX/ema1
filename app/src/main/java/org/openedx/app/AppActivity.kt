@@ -27,11 +27,11 @@ import org.openedx.auth.presentation.logistration.LogistrationFragment
 import org.openedx.auth.presentation.signin.SignInFragment
 import org.openedx.core.ApiConstants
 import org.openedx.core.data.storage.CorePreferences
+import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.presentation.global.InsetHolder
 import org.openedx.core.presentation.global.WindowSizeHolder
 import org.openedx.core.utils.Logger
 import org.openedx.core.worker.CalendarSyncScheduler
-import org.openedx.course.presentation.download.DownloadDialogManager
 import org.openedx.foundation.extension.requestApplyInsetsWhenAttached
 import org.openedx.foundation.presentation.WindowSize
 import org.openedx.foundation.presentation.WindowType

@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import org.openedx.core.data.model.room.DownloadCoursePreview
 import org.openedx.core.data.model.room.OfflineXBlockProgress
 
 @Dao
@@ -32,6 +33,9 @@ interface DownloadDao {
     @Query("DELETE FROM download_model WHERE id in (:ids)")
     suspend fun removeAllDownloadModels(ids: List<String>)
 
+    @Query("SELECT * FROM download_model WHERE courseId = :courseId")
+    suspend fun getDownloadModelsByCourseIds(courseId: String): List<DownloadModelEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOfflineXBlockProgress(offlineXBlockProgress: OfflineXBlockProgress)
 
@@ -46,4 +50,10 @@ interface DownloadDao {
 
     @Query("DELETE FROM offline_x_block_progress_table")
     suspend fun clearOfflineProgress()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDownloadCoursePreview(downloadCoursePreview: List<DownloadCoursePreview>)
+
+    @Query("SELECT * FROM download_course_preview_table")
+    fun getDownloadCoursesPreview(): List<DownloadCoursePreview>
 }

@@ -223,6 +223,40 @@ fun Toolbar(
 }
 
 @Composable
+fun MainToolbar(
+    modifier: Modifier = Modifier,
+    label: String,
+    onSettingsClick: () -> Unit,
+) {
+    Box(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Text(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 16.dp),
+            text = label,
+            color = MaterialTheme.appColors.textDark,
+            style = MaterialTheme.appTypography.headlineBold
+        )
+        IconButton(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 12.dp),
+            onClick = {
+                onSettingsClick()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.ManageAccounts,
+                tint = MaterialTheme.appColors.textAccent,
+                contentDescription = stringResource(id = R.string.core_accessibility_settings)
+            )
+        }
+    }
+}
+
+@Composable
 fun SearchBar(
     modifier: Modifier,
     searchValue: TextFieldValue,
@@ -1402,6 +1436,23 @@ private fun RoundTab(
             color = contentColor
         )
     }
+}
+
+@Composable
+fun OpenEdXDropdownMenuItem(
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit
+) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(16.dp),
+        text = text,
+        style = MaterialTheme.appTypography.labelLarge,
+        color = MaterialTheme.appColors.textDark,
+    )
 }
 
 @Preview

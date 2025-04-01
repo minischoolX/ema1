@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -53,12 +52,12 @@ import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appShapes
 import org.openedx.core.ui.theme.appTypography
-import org.openedx.course.R
 import org.openedx.course.presentation.ui.OfflineQueueCard
 import org.openedx.foundation.presentation.WindowSize
 import org.openedx.foundation.presentation.WindowType
 import org.openedx.foundation.presentation.rememberWindowSize
 import org.openedx.foundation.presentation.windowSizeValue
+import org.openedx.core.R as coreR
 
 class DownloadQueueFragment : Fragment() {
 
@@ -89,7 +88,7 @@ class DownloadQueueFragment : Fragment() {
                         requireActivity().supportFragmentManager.popBackStack()
                     },
                     onDownloadClick = {
-                        viewModel.removeDownloadModels(it.id)
+                        viewModel.removeDownloadModels(it.id, "")
                     }
                 )
             }
@@ -156,7 +155,7 @@ private fun DownloadQueueScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 56.dp),
-                        text = stringResource(id = R.string.course_download_queue_title),
+                        text = stringResource(id = coreR.string.core_download_queue_title),
                         color = MaterialTheme.appColors.textPrimary,
                         style = MaterialTheme.appTypography.titleMedium,
                         maxLines = 1,
@@ -218,7 +217,7 @@ private fun DownloadQueueScreen(
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, device = Devices.TABLET)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DownloadQueueScreenPreview() {

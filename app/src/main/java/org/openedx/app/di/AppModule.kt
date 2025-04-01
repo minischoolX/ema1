@@ -40,8 +40,10 @@ import org.openedx.core.module.TranscriptManager
 import org.openedx.core.module.download.DownloadHelper
 import org.openedx.core.module.download.FileDownloader
 import org.openedx.core.presentation.CoreAnalytics
+import org.openedx.core.presentation.DownloadsAnalytics
 import org.openedx.core.presentation.dialog.appreview.AppReviewAnalytics
 import org.openedx.core.presentation.dialog.appreview.AppReviewManager
+import org.openedx.core.presentation.dialog.downloaddialog.DownloadDialogManager
 import org.openedx.core.presentation.global.AppData
 import org.openedx.core.presentation.global.WhatsNewGlobalManager
 import org.openedx.core.presentation.global.appupgrade.AppUpgradeRouter
@@ -58,7 +60,6 @@ import org.openedx.core.worker.CalendarSyncScheduler
 import org.openedx.course.data.storage.CoursePreferences
 import org.openedx.course.presentation.CourseAnalytics
 import org.openedx.course.presentation.CourseRouter
-import org.openedx.course.presentation.download.DownloadDialogManager
 import org.openedx.course.utils.ImageProcessor
 import org.openedx.course.worker.OfflineProgressSyncScheduler
 import org.openedx.dashboard.presentation.DashboardAnalytics
@@ -68,6 +69,7 @@ import org.openedx.discovery.presentation.DiscoveryRouter
 import org.openedx.discussion.presentation.DiscussionAnalytics
 import org.openedx.discussion.presentation.DiscussionRouter
 import org.openedx.discussion.system.notifier.DiscussionNotifier
+import org.openedx.downloads.presentation.DownloadsRouter
 import org.openedx.foundation.system.ResourceManager
 import org.openedx.foundation.utils.FileUtil
 import org.openedx.profile.data.storage.ProfilePreferences
@@ -127,6 +129,7 @@ val appModule = module {
     single<AppUpgradeRouter> { get<AppRouter>() }
     single { DeepLinkRouter(get(), get(), get(), get(), get(), get()) }
     single<CalendarRouter> { get<AppRouter>() }
+    single<DownloadsRouter> { get<AppRouter>() }
 
     single { NetworkConnection(get()) }
 
@@ -205,6 +208,7 @@ val appModule = module {
     single<DiscussionAnalytics> { get<AnalyticsManager>() }
     single<ProfileAnalytics> { get<AnalyticsManager>() }
     single<WhatsNewAnalytics> { get<AnalyticsManager>() }
+    single<DownloadsAnalytics> { get<AnalyticsManager>() }
 
     factory { AgreementProvider(get(), get()) }
     factory { FacebookAuthHelper() }
