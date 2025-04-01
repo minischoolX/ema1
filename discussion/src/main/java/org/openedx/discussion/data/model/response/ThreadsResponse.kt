@@ -3,7 +3,6 @@ package org.openedx.discussion.data.model.response
 import com.google.gson.annotations.SerializedName
 import org.openedx.core.data.model.Pagination
 import org.openedx.core.data.model.ProfileImage
-import org.openedx.core.extension.TextConverter
 import org.openedx.discussion.domain.model.DiscussionType
 import org.openedx.discussion.domain.model.ThreadsData
 
@@ -104,7 +103,6 @@ data class ThreadsResponse(
                 updatedAt,
                 rawBody,
                 renderedBody,
-                TextConverter.textToLinkedImageText(renderedBody),
                 abuseFlagged,
                 voted,
                 voteCount,

@@ -19,7 +19,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
 import org.openedx.core.R
-import org.openedx.core.extension.TextConverter
 import org.openedx.discussion.domain.interactor.DiscussionInteractor
 import org.openedx.discussion.domain.model.DiscussionType
 import org.openedx.discussion.domain.model.Topic
@@ -53,7 +52,6 @@ class DiscussionAddThreadViewModelTest {
         "",
         "",
         "",
-        TextConverter.textToLinkedImageText(""),
         false,
         true,
         20,

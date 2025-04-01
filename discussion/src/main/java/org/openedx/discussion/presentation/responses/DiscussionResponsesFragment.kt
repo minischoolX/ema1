@@ -76,7 +76,6 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import org.openedx.core.domain.model.ProfileImage
-import org.openedx.core.extension.TextConverter
 import org.openedx.core.ui.BackBtn
 import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.displayCutoutForLandscape
@@ -86,6 +85,7 @@ import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appShapes
 import org.openedx.core.ui.theme.appTypography
+import org.openedx.discussion.R
 import org.openedx.discussion.domain.model.DiscussionComment
 import org.openedx.discussion.presentation.DiscussionRouter
 import org.openedx.discussion.presentation.comments.DiscussionCommentsFragment
@@ -218,7 +218,7 @@ private fun DiscussionResponsesScreen(
     val focusManager = LocalFocusManager.current
 
     val firstVisibleIndex = remember {
-        mutableStateOf(scrollState.firstVisibleItemIndex)
+        mutableIntStateOf(scrollState.firstVisibleItemIndex)
     }
     val pullRefreshState =
         rememberPullRefreshState(refreshing = refreshing, onRefresh = { onSwipeRefresh() })
@@ -363,7 +363,7 @@ private fun DiscussionResponsesScreen(
                                                         .padding(horizontal = paddingContent)
                                                         .padding(top = 24.dp, bottom = 8.dp),
                                                     text = pluralStringResource(
-                                                        id = org.openedx.discussion.R.plurals.discussion_comments,
+                                                        id = R.plurals.discussion_comments,
                                                         uiState.mainComment.childCount,
                                                         uiState.mainComment.childCount
                                                     ),
@@ -462,7 +462,7 @@ private fun DiscussionResponsesScreen(
                                             placeholder = {
                                                 Text(
                                                     text = stringResource(
-                                                        id = org.openedx.discussion.R.string.discussion_add_comment
+                                                        id = R.string.discussion_add_comment
                                                     ),
                                                     color = MaterialTheme.appColors.textFieldHint,
                                                     style = MaterialTheme.appTypography.labelLarge,
@@ -493,7 +493,7 @@ private fun DiscussionResponsesScreen(
                                             Icon(
                                                 modifier = Modifier.padding(7.dp),
                                                 painter = painterResource(
-                                                    id = org.openedx.discussion.R.drawable.discussion_ic_send
+                                                    id = R.drawable.discussion_ic_send
                                                 ),
                                                 contentDescription = null,
                                                 tint = iconButtonColor
@@ -591,7 +591,6 @@ private val mockComment = DiscussionComment(
     "",
     "",
     "",
-    TextConverter.textToLinkedImageText(""),
     false,
     true,
     20,

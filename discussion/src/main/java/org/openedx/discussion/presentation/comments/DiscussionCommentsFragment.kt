@@ -72,7 +72,6 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import org.openedx.core.domain.model.ProfileImage
-import org.openedx.core.extension.TextConverter
 import org.openedx.core.ui.BackBtn
 import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.displayCutoutForLandscape
@@ -550,7 +549,6 @@ private val mockThread = org.openedx.discussion.domain.model.Thread(
     "",
     "",
     "",
-    TextConverter.textToLinkedImageText(""),
     false,
     true,
     20,
@@ -585,7 +583,6 @@ private val mockComment = DiscussionComment(
     "",
     "",
     "",
-    TextConverter.textToLinkedImageText(""),
     false,
     true,
     20,

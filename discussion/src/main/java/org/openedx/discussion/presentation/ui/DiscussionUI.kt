@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import org.openedx.core.domain.model.ProfileImage
-import org.openedx.core.extension.TextConverter
 import org.openedx.core.ui.AutoSizeText
 import org.openedx.core.ui.IconText
 import org.openedx.core.ui.RenderHtmlContent
@@ -716,7 +715,6 @@ private val mockComment = DiscussionComment(
     "",
     "",
     "",
-    TextConverter.textToLinkedImageText(""),
     false,
     true,
     20,
@@ -742,7 +740,6 @@ private val mockThread = org.openedx.discussion.domain.model.Thread(
     "",
     "",
     "",
-    TextConverter.textToLinkedImageText(""),
     false,
     true,
     20,
