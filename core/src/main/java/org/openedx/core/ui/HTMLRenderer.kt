@@ -1,5 +1,6 @@
 package org.openedx.core.ui
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -68,8 +69,12 @@ private fun RenderClickableText(annotated: AnnotatedString) {
                     val position = layoutResult.getOffsetForPosition(offset)
                     annotated.getStringAnnotations("URL", position, position)
                         .firstOrNull()?.let { annotation ->
-                            val intent = Intent(Intent.ACTION_VIEW, annotation.item.toUri())
-                            context.startActivity(intent)
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, annotation.item.toUri())
+                                context.startActivity(intent)
+                            } catch (e: ActivityNotFoundException) {
+                                e.printStackTrace()
+                            }
                         }
                 }
             }
@@ -92,8 +97,7 @@ private fun RenderParagraph(element: Element) {
         segments.forEach { segment ->
             when (segment) {
                 is List<*> -> {
-                    @Suppress("UNCHECKED_CAST")
-                    val nodes = segment as List<Node>
+                    val nodes = segment.filterIsInstance<Node>()
                     val annotated = buildAnnotatedStringFromNodes(nodes)
                     RenderClickableText(annotated)
                 }
