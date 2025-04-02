@@ -64,7 +64,6 @@ interface CourseApi {
     @GET("/api/course_home/v1/dates/{course_id}")
     suspend fun getCourseDates(
         @Path("course_id") courseId: String,
-        @Query("mobile") mobile: Boolean = true,
     ): CourseDates
 
     @POST("/api/course_experience/v1/reset_course_deadlines")
@@ -118,5 +117,5 @@ interface CourseApi {
     ): CourseDatesResponse
 
     @POST("/api/course_experience/v1/reset_all_relative_course_deadlines/")
-    suspend fun shiftDueDate()
+    suspend fun shiftAllDueDates()
 }

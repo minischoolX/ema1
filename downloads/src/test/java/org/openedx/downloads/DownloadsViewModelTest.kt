@@ -265,6 +265,7 @@ class DownloadsViewModelTest {
             workerController,
             downloadHelper
         )
+        advanceUntilIdle()
         val fragmentManager = mockk<FragmentManager>(relaxed = true)
         viewModel.downloadCourse(fragmentManager, "course1")
         advanceUntilIdle()

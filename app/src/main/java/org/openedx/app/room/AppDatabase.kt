@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import org.openedx.core.data.model.room.CourseCalendarEventEntity
 import org.openedx.core.data.model.room.CourseCalendarStateEntity
-import org.openedx.core.data.model.room.CourseDatesResponseEntity
+import org.openedx.core.data.model.room.CourseDateEntity
 import org.openedx.core.data.model.room.CourseEnrollmentDetailsEntity
 import org.openedx.core.data.model.room.CourseStructureEntity
 import org.openedx.core.data.model.room.DownloadCoursePreview
@@ -37,7 +37,7 @@ const val DATABASE_NAME = "OpenEdX_db"
         CourseCalendarStateEntity::class,
         DownloadCoursePreview::class,
         CourseEnrollmentDetailsEntity::class,
-        CourseDatesResponseEntity::class,
+        CourseDateEntity::class,
     ],
     autoMigrations = [
         AutoMigration(1, DATABASE_VERSION)
