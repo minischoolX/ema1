@@ -220,6 +220,7 @@ private fun DiscussionResponsesScreen(
     val firstVisibleIndex = remember {
         mutableIntStateOf(scrollState.firstVisibleItemIndex)
     }
+    val isShouldLoadMore = scrollState.shouldLoadMore(firstVisibleIndex, LOAD_MORE_THRESHOLD)
     val pullRefreshState =
         rememberPullRefreshState(refreshing = refreshing, onRefresh = { onSwipeRefresh() })
 
@@ -421,11 +422,7 @@ private fun DiscussionResponsesScreen(
                                             }
                                         }
                                     }
-                                    if (scrollState.shouldLoadMore(
-                                            firstVisibleIndex,
-                                            LOAD_MORE_THRESHOLD
-                                        )
-                                    ) {
+                                    if (isShouldLoadMore) {
                                         paginationCallBack()
                                     }
                                 }
