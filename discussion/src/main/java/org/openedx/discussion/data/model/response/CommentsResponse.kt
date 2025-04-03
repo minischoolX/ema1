@@ -3,7 +3,6 @@ package org.openedx.discussion.data.model.response
 import com.google.gson.annotations.SerializedName
 import org.openedx.core.data.model.Pagination
 import org.openedx.core.data.model.ProfileImage
-import org.openedx.core.extension.TextConverter
 import org.openedx.discussion.domain.model.CommentsData
 import org.openedx.discussion.domain.model.DiscussionComment
 
@@ -78,7 +77,6 @@ data class CommentResult(
             updatedAt,
             rawBody,
             renderedBody,
-            TextConverter.textToLinkedImageText(renderedBody),
             abuseFlagged,
             voted,
             voteCount,

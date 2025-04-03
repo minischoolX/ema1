@@ -12,11 +12,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,6 +45,7 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -56,7 +55,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -75,7 +76,6 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import org.openedx.core.domain.model.ProfileImage
-import org.openedx.core.extension.TextConverter
 import org.openedx.core.ui.BackBtn
 import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.displayCutoutForLandscape
@@ -85,6 +85,7 @@ import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appShapes
 import org.openedx.core.ui.theme.appTypography
+import org.openedx.discussion.R
 import org.openedx.discussion.domain.model.DiscussionComment
 import org.openedx.discussion.presentation.DiscussionRouter
 import org.openedx.discussion.presentation.comments.DiscussionCommentsFragment
@@ -217,8 +218,9 @@ private fun DiscussionResponsesScreen(
     val focusManager = LocalFocusManager.current
 
     val firstVisibleIndex = remember {
-        mutableStateOf(scrollState.firstVisibleItemIndex)
+        mutableIntStateOf(scrollState.firstVisibleItemIndex)
     }
+    val isShouldLoadMore = scrollState.shouldLoadMore(firstVisibleIndex, LOAD_MORE_THRESHOLD)
     val pullRefreshState =
         rememberPullRefreshState(refreshing = refreshing, onRefresh = { onSwipeRefresh() })
 
@@ -362,7 +364,7 @@ private fun DiscussionResponsesScreen(
                                                         .padding(horizontal = paddingContent)
                                                         .padding(top = 24.dp, bottom = 8.dp),
                                                     text = pluralStringResource(
-                                                        id = org.openedx.discussion.R.plurals.discussion_comments,
+                                                        id = R.plurals.discussion_comments,
                                                         uiState.mainComment.childCount,
                                                         uiState.mainComment.childCount
                                                     ),
@@ -374,23 +376,31 @@ private fun DiscussionResponsesScreen(
                                         }
 
                                         items(uiState.childComments) { comment ->
+                                            var itemHeight by remember { mutableIntStateOf(0) }
+                                            val boxHeight = if (itemHeight > 0) {
+                                                Modifier.height(with(LocalDensity.current) { itemHeight.toDp() })
+                                            } else {
+                                                Modifier
+                                            }
                                             Row(
                                                 Modifier
                                                     .fillMaxWidth()
-                                                    .height(IntrinsicSize.Min)
                                                     .padding(start = paddingContent),
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxHeight()
                                                         .width(1.dp)
+                                                        .then(boxHeight)
                                                         .background(MaterialTheme.appColors.cardViewBorder)
                                                 )
                                                 CommentMainItem(
                                                     modifier = Modifier
                                                         .padding(4.dp)
-                                                        .fillMaxWidth(),
+                                                        .fillMaxWidth()
+                                                        .onGloballyPositioned { coordinates ->
+                                                            itemHeight = coordinates.size.height
+                                                        },
                                                     comment = comment,
                                                     onClick = { action, commentId, bool ->
                                                         onItemClick(action, commentId, bool)
@@ -412,7 +422,7 @@ private fun DiscussionResponsesScreen(
                                             }
                                         }
                                     }
-                                    if (scrollState.shouldLoadMore(firstVisibleIndex, LOAD_MORE_THRESHOLD)) {
+                                    if (isShouldLoadMore) {
                                         paginationCallBack()
                                     }
                                 }
@@ -449,7 +459,7 @@ private fun DiscussionResponsesScreen(
                                             placeholder = {
                                                 Text(
                                                     text = stringResource(
-                                                        id = org.openedx.discussion.R.string.discussion_add_comment
+                                                        id = R.string.discussion_add_comment
                                                     ),
                                                     color = MaterialTheme.appColors.textFieldHint,
                                                     style = MaterialTheme.appTypography.labelLarge,
@@ -480,7 +490,7 @@ private fun DiscussionResponsesScreen(
                                             Icon(
                                                 modifier = Modifier.padding(7.dp),
                                                 painter = painterResource(
-                                                    id = org.openedx.discussion.R.drawable.discussion_ic_send
+                                                    id = R.drawable.discussion_ic_send
                                                 ),
                                                 contentDescription = null,
                                                 tint = iconButtonColor
@@ -578,7 +588,6 @@ private val mockComment = DiscussionComment(
     "",
     "",
     "",
-    TextConverter.textToLinkedImageText(""),
     false,
     true,
     20,

@@ -22,11 +22,9 @@ import org.junit.rules.TestRule
 import org.openedx.core.R
 import org.openedx.core.data.storage.CorePreferences
 import org.openedx.core.domain.model.Pagination
-import org.openedx.core.extension.LinkedImageText
 import org.openedx.discussion.domain.interactor.DiscussionInteractor
 import org.openedx.discussion.domain.model.CommentsData
 import org.openedx.discussion.domain.model.DiscussionComment
-import org.openedx.discussion.domain.model.DiscussionType
 import org.openedx.discussion.system.notifier.DiscussionNotifier
 import org.openedx.foundation.presentation.UIMessage
 import org.openedx.foundation.system.ResourceManager
@@ -49,45 +47,6 @@ class DiscussionResponsesViewModelTest {
     private val somethingWrong = "Something went wrong"
     private val commentAddedSuccessfully = "Comment Successfully added"
 
-    //region mockThread
-
-    val mockThread = org.openedx.discussion.domain.model.Thread(
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        LinkedImageText("", emptyMap(), emptyMap(), emptyList()),
-        false,
-        true,
-        20,
-        emptyList(),
-        false,
-        "",
-        "",
-        "",
-        "",
-        DiscussionType.DISCUSSION,
-        "",
-        "",
-        "Discussion title long Discussion title long good item",
-        true,
-        false,
-        true,
-        21,
-        4,
-        false,
-        false,
-        mapOf(),
-        0,
-        false,
-        false
-    )
-
-    //endregion
-
     //region mockComment
 
     private val mockComment = DiscussionComment(
@@ -98,7 +57,6 @@ class DiscussionResponsesViewModelTest {
         "",
         "",
         "",
-        LinkedImageText("", emptyMap(), emptyMap(), emptyList()),
         false,
         true,
         20,

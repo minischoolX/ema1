@@ -27,7 +27,6 @@ import org.junit.rules.TestRule
 import org.openedx.core.R
 import org.openedx.core.data.storage.CorePreferences
 import org.openedx.core.domain.model.Pagination
-import org.openedx.core.extension.TextConverter
 import org.openedx.discussion.domain.interactor.DiscussionInteractor
 import org.openedx.discussion.domain.model.CommentsData
 import org.openedx.discussion.domain.model.DiscussionComment
@@ -68,7 +67,6 @@ class DiscussionCommentsViewModelTest {
         "",
         "",
         "",
-        TextConverter.textToLinkedImageText(""),
         false,
         true,
         20,
@@ -107,7 +105,6 @@ class DiscussionCommentsViewModelTest {
         "",
         "",
         "",
-        TextConverter.textToLinkedImageText(""),
         false,
         true,
         20,

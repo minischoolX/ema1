@@ -1,7 +1,5 @@
 package org.openedx.core.ui
 
-import android.os.Build
-import android.os.Build.VERSION.SDK_INT
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -19,7 +17,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -81,7 +78,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -106,15 +102,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import coil.ImageLoader
-import coil.compose.AsyncImage
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
 import kotlinx.coroutines.launch
 import org.openedx.core.NoContentScreenType
 import org.openedx.core.R
 import org.openedx.core.domain.model.RegistrationField
-import org.openedx.core.extension.LinkedImageText
 import org.openedx.core.presentation.global.ErrorType
 import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
@@ -540,131 +531,6 @@ fun HyperlinkText(
         },
         style = textStyle
     )
-}
-
-@Composable
-fun HyperlinkImageText(
-    modifier: Modifier = Modifier,
-    title: String = "",
-    imageText: LinkedImageText,
-    textStyle: TextStyle = TextStyle.Default,
-    linkTextColor: Color = MaterialTheme.appColors.primary,
-    linkTextFontWeight: FontWeight = FontWeight.Normal,
-    linkTextDecoration: TextDecoration = TextDecoration.None,
-    fontSize: TextUnit = TextUnit.Unspecified,
-) {
-    val fullText = imageText.text
-    val hyperLinks = imageText.links
-    val annotatedString = buildAnnotatedString {
-        if (title.isNotEmpty()) {
-            append(title)
-            append("\n\n")
-        }
-        append(fullText)
-        addStyle(
-            style = SpanStyle(
-                color = MaterialTheme.appColors.textPrimary,
-                fontSize = fontSize
-            ),
-            start = 0,
-            end = this.length
-        )
-
-        for ((key, value) in hyperLinks) {
-            val startIndex = this.toString().indexOf(key)
-            if (startIndex == -1) continue
-            val endIndex = startIndex + key.length
-            addStyle(
-                style = SpanStyle(
-                    color = linkTextColor,
-                    fontSize = fontSize,
-                    fontWeight = linkTextFontWeight,
-                    textDecoration = linkTextDecoration
-                ),
-                start = startIndex,
-                end = endIndex
-            )
-            addStringAnnotation(
-                tag = "URL",
-                annotation = value,
-                start = startIndex,
-                end = endIndex
-            )
-        }
-        if (title.isNotEmpty()) {
-            addStyle(
-                style = SpanStyle(
-                    color = MaterialTheme.appColors.textPrimary,
-                    fontSize = MaterialTheme.appTypography.titleLarge.fontSize,
-                    fontWeight = MaterialTheme.appTypography.titleLarge.fontWeight
-                ),
-                start = 0,
-                end = title.length
-            )
-        }
-        for (item in imageText.headers) {
-            val startIndex = this.toString().indexOf(item)
-            if (startIndex == -1) continue
-            val endIndex = startIndex + item.length
-            addStyle(
-                style = SpanStyle(
-                    color = MaterialTheme.appColors.textPrimary,
-                    fontSize = MaterialTheme.appTypography.titleLarge.fontSize,
-                    fontWeight = MaterialTheme.appTypography.titleLarge.fontWeight
-                ),
-                start = startIndex,
-                end = endIndex
-            )
-        }
-        addStyle(
-            style = SpanStyle(
-                fontSize = fontSize
-            ),
-            start = 0,
-            end = this.length
-        )
-    }
-
-    val uriHandler = LocalUriHandler.current
-    val context = LocalContext.current
-    val imageLoader = ImageLoader.Builder(context)
-        .components {
-            if (SDK_INT >= Build.VERSION_CODES.P) {
-                add(ImageDecoderDecoder.Factory())
-            } else {
-                add(GifDecoder.Factory())
-            }
-        }
-        .build()
-
-    Column(Modifier.fillMaxWidth()) {
-        BasicText(
-            text = annotatedString,
-            modifier = modifier.pointerInput(Unit) {
-                detectTapGestures { offset ->
-                    val position = offset.x.toInt()
-                    annotatedString.getStringAnnotations("URL", position, position)
-                        .firstOrNull()?.let { stringAnnotation ->
-                            uriHandler.openUri(stringAnnotation.item)
-                        }
-                }
-            },
-            style = textStyle
-        )
-        imageText.imageLinks.values.forEach {
-            Spacer(Modifier.height(8.dp))
-            AsyncImage(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(0.dp, 360.dp),
-                contentScale = ContentScale.Fit,
-                model = it,
-                contentDescription = null,
-                imageLoader = imageLoader
-            )
-        }
-        Spacer(Modifier.height(16.dp))
-    }
 }
 
 @Composable

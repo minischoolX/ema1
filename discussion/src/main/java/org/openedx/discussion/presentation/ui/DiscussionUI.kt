@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package org.openedx.discussion.presentation.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
@@ -31,7 +29,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
@@ -48,10 +45,9 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import org.openedx.core.domain.model.ProfileImage
-import org.openedx.core.extension.TextConverter
 import org.openedx.core.ui.AutoSizeText
-import org.openedx.core.ui.HyperlinkImageText
 import org.openedx.core.ui.IconText
+import org.openedx.core.ui.RenderHtmlContent
 import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appShapes
@@ -162,10 +158,8 @@ fun ThreadMainItem(
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
-        HyperlinkImageText(
-            title = thread.title,
-            imageText = thread.parsedRenderedBody,
-            linkTextColor = MaterialTheme.appColors.primary
+        RenderHtmlContent(
+            html = thread.rawBody,
         )
         Spacer(modifier = Modifier.height(24.dp))
         Row(
@@ -316,9 +310,8 @@ fun CommentItem(
                 )
             }
             Spacer(modifier = Modifier.height(14.dp))
-            HyperlinkImageText(
-                imageText = comment.parsedRenderedBody,
-                linkTextColor = MaterialTheme.appColors.primary
+            RenderHtmlContent(
+                html = comment.rawBody,
             )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -455,9 +448,8 @@ fun CommentMainItem(
                 }
             }
             Spacer(modifier = Modifier.height(14.dp))
-            HyperlinkImageText(
-                imageText = comment.parsedRenderedBody,
-                linkTextColor = MaterialTheme.appColors.primary
+            RenderHtmlContent(
+                html = comment.rawBody,
             )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -723,7 +715,6 @@ private val mockComment = DiscussionComment(
     "",
     "",
     "",
-    TextConverter.textToLinkedImageText(""),
     false,
     true,
     20,
@@ -749,7 +740,6 @@ private val mockThread = org.openedx.discussion.domain.model.Thread(
     "",
     "",
     "",
-    TextConverter.textToLinkedImageText(""),
     false,
     true,
     20,
