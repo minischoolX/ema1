@@ -28,12 +28,10 @@ class SettingsFragment : Fragment() {
                 val windowSize = rememberWindowSize()
                 val uiState by viewModel.uiState.collectAsState()
                 val logoutSuccess by viewModel.successLogout.collectAsState(false)
-                val appUpgradeEvent by viewModel.appUpgradeEvent.collectAsState(null)
 
                 SettingsScreen(
                     windowSize = windowSize,
                     uiState = uiState,
-                    appUpgradeEvent = appUpgradeEvent,
                     onBackClick = {
                         requireActivity().supportFragmentManager.popBackStack()
                     },

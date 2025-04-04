@@ -73,7 +73,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.openedx.core.AppUpdateState
 import org.openedx.core.domain.model.Certificate
 import org.openedx.core.domain.model.CourseAssignments
 import org.openedx.core.domain.model.CourseSharingUtmParameters
@@ -82,8 +81,6 @@ import org.openedx.core.domain.model.CoursewareAccess
 import org.openedx.core.domain.model.EnrolledCourse
 import org.openedx.core.domain.model.EnrolledCourseData
 import org.openedx.core.domain.model.Progress
-import org.openedx.core.presentation.global.appupgrade.AppUpgradeRecommendedBox
-import org.openedx.core.system.notifier.app.AppUpgradeEvent
 import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.OfflineModeDialog
 import org.openedx.core.ui.displayCutoutForLandscape
@@ -127,7 +124,6 @@ class DashboardListFragment : Fragment() {
                 val uiMessage by viewModel.uiMessage.observeAsState()
                 val refreshing by viewModel.updating.observeAsState(false)
                 val canLoadMore by viewModel.canLoadMore.observeAsState(false)
-                val appUpgradeEvent by viewModel.appUpgradeEvent.observeAsState()
 
                 DashboardListView(
                     windowSize = windowSize,
@@ -154,12 +150,6 @@ class DashboardListFragment : Fragment() {
                     paginationCallback = {
                         viewModel.fetchMore()
                     },
-                    appUpgradeParameters = AppUpdateState.AppUpgradeParameters(
-                        appUpgradeEvent = appUpgradeEvent,
-                        onAppUpgradeRecommendedBoxClick = {
-                            AppUpdateState.openPlayMarket(requireContext())
-                        },
-                    ),
                 )
             }
         }
@@ -184,7 +174,6 @@ internal fun DashboardListView(
     onSwipeRefresh: () -> Unit,
     paginationCallback: () -> Unit,
     onItemClick: (EnrolledCourse) -> Unit,
-    appUpgradeParameters: AppUpdateState.AppUpgradeParameters,
 ) {
     val scaffoldState = rememberScaffoldState()
     val pullRefreshState =
@@ -306,7 +295,11 @@ internal fun DashboardListView(
                                         }
                                     }
                                 )
-                                if (scrollState.shouldLoadMore(firstVisibleIndex, LOAD_MORE_THRESHOLD)) {
+                                if (scrollState.shouldLoadMore(
+                                        firstVisibleIndex,
+                                        LOAD_MORE_THRESHOLD
+                                    )
+                                ) {
                                     paginationCallback()
                                 }
                             }
@@ -338,17 +331,6 @@ internal fun DashboardListView(
                             .fillMaxWidth()
                             .align(Alignment.BottomCenter)
                     ) {
-                        when (appUpgradeParameters.appUpgradeEvent) {
-                            is AppUpgradeEvent.UpgradeRecommendedEvent -> {
-                                AppUpgradeRecommendedBox(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onClick = appUpgradeParameters.onAppUpgradeRecommendedBoxClick
-                                )
-                            }
-
-                            else -> {}
-                        }
-
                         if (!isInternetConnectionShown && !hasInternetConnection) {
                             OfflineModeDialog(
                                 Modifier
@@ -564,7 +546,6 @@ private fun DashboardListViewPreview() {
             refreshing = false,
             canLoadMore = false,
             paginationCallback = {},
-            appUpgradeParameters = AppUpdateState.AppUpgradeParameters()
         )
     }
 }
@@ -595,7 +576,6 @@ private fun DashboardListViewTabletPreview() {
             refreshing = false,
             canLoadMore = false,
             paginationCallback = {},
-            appUpgradeParameters = AppUpdateState.AppUpgradeParameters()
         )
     }
 }
@@ -617,7 +597,6 @@ private fun EmptyStatePreview() {
             refreshing = false,
             canLoadMore = false,
             paginationCallback = {},
-            appUpgradeParameters = AppUpdateState.AppUpgradeParameters()
         )
     }
 }

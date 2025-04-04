@@ -57,12 +57,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.openedx.core.AppUpdateState
-import org.openedx.core.AppUpdateState.wasUpdateDialogClosed
 import org.openedx.core.domain.model.Media
-import org.openedx.core.presentation.dialog.appupgrade.AppUpgradeDialogFragment
-import org.openedx.core.presentation.global.appupgrade.AppUpgradeRecommendedBox
-import org.openedx.core.system.notifier.app.AppUpgradeEvent
 import org.openedx.core.ui.AuthButtonsPanel
 import org.openedx.core.ui.BackBtn
 import org.openedx.core.ui.HandleUIMessage
@@ -104,8 +99,6 @@ class NativeDiscoveryFragment : Fragment() {
                 val uiMessage by viewModel.uiMessage.observeAsState()
                 val canLoadMore by viewModel.canLoadMore.observeAsState(false)
                 val refreshing by viewModel.isUpdating.observeAsState(false)
-                val appUpgradeEvent by viewModel.appUpgradeEvent.observeAsState()
-                val wasUpdateDialogClosed by remember { wasUpdateDialogClosed }
                 val querySearch = arguments?.getString(ARG_SEARCH_QUERY, "") ?: ""
 
                 DiscoveryScreen(
@@ -119,25 +112,6 @@ class NativeDiscoveryFragment : Fragment() {
                     canShowBackButton = viewModel.canShowBackButton,
                     isUserLoggedIn = viewModel.isUserLoggedIn,
                     isRegistrationEnabled = viewModel.isRegistrationEnabled,
-                    appUpgradeParameters = AppUpdateState.AppUpgradeParameters(
-                        appUpgradeEvent = appUpgradeEvent,
-                        wasUpdateDialogClosed = wasUpdateDialogClosed,
-                        appUpgradeRecommendedDialog = {
-                            val dialog = AppUpgradeDialogFragment.newInstance()
-                            dialog.show(
-                                requireActivity().supportFragmentManager,
-                                AppUpgradeDialogFragment::class.simpleName
-                            )
-                        },
-                        onAppUpgradeRecommendedBoxClick = {
-                            AppUpdateState.openPlayMarket(requireContext())
-                        },
-                        onAppUpgradeRequired = {
-                            router.navigateToUpgradeRequired(
-                                requireActivity().supportFragmentManager
-                            )
-                        }
-                    ),
                     onSearchClick = {
                         viewModel.discoverySearchBarClickedEvent()
                         router.navigateToCourseSearch(
@@ -214,7 +188,6 @@ internal fun DiscoveryScreen(
     canShowBackButton: Boolean,
     isUserLoggedIn: Boolean,
     isRegistrationEnabled: Boolean,
-    appUpgradeParameters: AppUpdateState.AppUpgradeParameters,
     onSearchClick: () -> Unit,
     onSwipeRefresh: () -> Unit,
     onReloadClick: () -> Unit,
@@ -419,7 +392,11 @@ internal fun DiscoveryScreen(
                                         }
                                     }
                                 }
-                                if (scrollState.shouldLoadMore(firstVisibleIndex, LOAD_MORE_THRESHOLD)) {
+                                if (scrollState.shouldLoadMore(
+                                        firstVisibleIndex,
+                                        LOAD_MORE_THRESHOLD
+                                    )
+                                ) {
                                     paginationCallback()
                                 }
                             }
@@ -436,30 +413,6 @@ internal fun DiscoveryScreen(
                             .fillMaxWidth()
                             .align(Alignment.BottomCenter)
                     ) {
-                        when (appUpgradeParameters.appUpgradeEvent) {
-                            is AppUpgradeEvent.UpgradeRecommendedEvent -> {
-                                if (appUpgradeParameters.wasUpdateDialogClosed) {
-                                    AppUpgradeRecommendedBox(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        onClick = appUpgradeParameters.onAppUpgradeRecommendedBoxClick
-                                    )
-                                } else {
-                                    if (!AppUpdateState.wasUpdateDialogDisplayed) {
-                                        AppUpdateState.wasUpdateDialogDisplayed = true
-                                        appUpgradeParameters.appUpgradeRecommendedDialog()
-                                    }
-                                }
-                            }
-
-                            is AppUpgradeEvent.UpgradeRequiredEvent -> {
-                                if (!AppUpdateState.wasUpdateDialogDisplayed) {
-                                    AppUpdateState.wasUpdateDialogDisplayed = true
-                                    appUpgradeParameters.onAppUpgradeRequired()
-                                }
-                            }
-
-                            else -> {}
-                        }
                         if (!isInternetConnectionShown && !hasInternetConnection) {
                             OfflineModeDialog(
                                 Modifier
@@ -526,7 +479,6 @@ private fun DiscoveryScreenPreview() {
             hasInternetConnection = true,
             isUserLoggedIn = false,
             isRegistrationEnabled = true,
-            appUpgradeParameters = AppUpdateState.AppUpgradeParameters(),
             onSignInClick = {},
             onRegisterClick = {},
             onBackClick = {},
@@ -568,7 +520,6 @@ private fun DiscoveryScreenTabletPreview() {
             hasInternetConnection = true,
             isUserLoggedIn = true,
             isRegistrationEnabled = true,
-            appUpgradeParameters = AppUpdateState.AppUpgradeParameters(),
             onSignInClick = {},
             onRegisterClick = {},
             onBackClick = {},

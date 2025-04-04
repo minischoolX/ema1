@@ -3,6 +3,11 @@ package org.openedx.app
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.core.os.bundleOf
 import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
@@ -14,9 +19,14 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.openedx.app.databinding.FragmentMainBinding
 import org.openedx.app.deeplink.HomeTab
+import org.openedx.core.AppUpdateState
+import org.openedx.core.AppUpdateState.wasUpgradeDialogClosed
 import org.openedx.core.adapter.NavigationFragmentAdapter
+import org.openedx.core.presentation.dialog.appupgrade.AppUpgradeDialogFragment
+import org.openedx.core.presentation.global.appupgrade.AppUpgradeRecommendedBox
 import org.openedx.core.presentation.global.appupgrade.UpgradeRequiredFragment
 import org.openedx.core.presentation.global.viewBinding
+import org.openedx.core.system.notifier.app.AppUpgradeEvent
 import org.openedx.discovery.presentation.DiscoveryRouter
 import org.openedx.downloads.presentation.download.DownloadsFragment
 import org.openedx.learn.presentation.LearnFragment
@@ -45,6 +55,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         handleArguments()
         setupBottomNavigation()
         setupViewPager()
+        setupBottomPopup()
         observeViewModel()
     }
 
@@ -183,6 +194,56 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     private fun enableBottomBar(enable: Boolean) {
         binding.bottomNavView.menu.forEach {
             it.isEnabled = enable
+        }
+    }
+
+    private fun setupBottomPopup() {
+        binding.composeBottomPopup.setContent {
+            val appUpgradeEvent by viewModel.appUpgradeEvent.observeAsState()
+            val wasUpgradeDialogClosed by remember { wasUpgradeDialogClosed }
+            val appUpgradeParameters = AppUpdateState.AppUpgradeParameters(
+                appUpgradeEvent = appUpgradeEvent,
+                wasUpgradeDialogClosed = wasUpgradeDialogClosed,
+                appUpgradeRecommendedDialog = {
+                    val dialog = AppUpgradeDialogFragment.newInstance()
+                    dialog.show(
+                        requireActivity().supportFragmentManager,
+                        AppUpgradeDialogFragment::class.simpleName
+                    )
+                },
+                onAppUpgradeRecommendedBoxClick = {
+                    AppUpdateState.openPlayMarket(requireContext())
+                },
+                onAppUpgradeRequired = {
+                    router.navigateToUpgradeRequired(
+                        requireActivity().supportFragmentManager
+                    )
+                }
+            )
+            when (appUpgradeParameters.appUpgradeEvent) {
+                is AppUpgradeEvent.UpgradeRecommendedEvent -> {
+                    if (appUpgradeParameters.wasUpgradeDialogClosed) {
+                        AppUpgradeRecommendedBox(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = appUpgradeParameters.onAppUpgradeRecommendedBoxClick
+                        )
+                    } else {
+                        if (!AppUpdateState.wasUpdateDialogDisplayed) {
+                            AppUpdateState.wasUpdateDialogDisplayed = true
+                            appUpgradeParameters.appUpgradeRecommendedDialog()
+                        }
+                    }
+                }
+
+                is AppUpgradeEvent.UpgradeRequiredEvent -> {
+                    if (!AppUpdateState.wasUpdateDialogDisplayed) {
+                        AppUpdateState.wasUpdateDialogDisplayed = true
+                        appUpgradeParameters.onAppUpgradeRequired()
+                    }
+                }
+
+                else -> {}
+            }
         }
     }
 

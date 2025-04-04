@@ -21,7 +21,6 @@ import org.openedx.core.module.DownloadWorkerController
 import org.openedx.core.presentation.global.AppData
 import org.openedx.core.system.AppCookieManager
 import org.openedx.core.system.notifier.app.AppNotifier
-import org.openedx.core.system.notifier.app.AppUpgradeEvent
 import org.openedx.core.system.notifier.app.LogoutEvent
 import org.openedx.core.utils.EmailUtil
 import org.openedx.foundation.extension.isInternetError
@@ -62,10 +61,6 @@ class SettingsViewModel(
     val uiMessage: SharedFlow<UIMessage>
         get() = _uiMessage.asSharedFlow()
 
-    private val _appUpgradeEvent = MutableStateFlow<AppUpgradeEvent?>(null)
-    val appUpgradeEvent: StateFlow<AppUpgradeEvent?>
-        get() = _appUpgradeEvent.asStateFlow()
-
     val isLogistrationEnabled get() = config.isPreLoginExperienceEnabled()
 
     private val configuration
@@ -77,7 +72,6 @@ class SettingsViewModel(
         )
 
     init {
-        collectAppUpgradeEvent()
         collectProfileEvent()
     }
 
@@ -113,16 +107,6 @@ class SettingsViewModel(
                 cookieManager.clearWebViewCookie()
                 appNotifier.send(LogoutEvent(false))
                 _successLogout.emit(true)
-            }
-        }
-    }
-
-    private fun collectAppUpgradeEvent() {
-        viewModelScope.launch {
-            appNotifier.notifier.collect { event ->
-                if (event is AppUpgradeEvent) {
-                    _appUpgradeEvent.value = event
-                }
             }
         }
     }

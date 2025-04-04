@@ -50,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import org.openedx.core.AppUpdateState
 import org.openedx.core.R
 import org.openedx.core.domain.model.AgreementUrls
 import org.openedx.core.presentation.global.AppData
@@ -75,7 +76,6 @@ import org.openedx.profile.R as profileR
 internal fun SettingsScreen(
     windowSize: WindowSize,
     uiState: SettingsUIState,
-    appUpgradeEvent: AppUpgradeEvent?,
     onBackClick: () -> Unit,
     onAction: (SettingsScreenAction) -> Unit,
 ) {
@@ -189,7 +189,6 @@ internal fun SettingsScreen(
                                     SupportInfoSection(
                                         uiState = uiState,
                                         onAction = onAction,
-                                        appUpgradeEvent = appUpgradeEvent,
                                     )
 
                                     Spacer(modifier = Modifier.height(24.dp))
@@ -264,7 +263,6 @@ private fun ManageAccountSection(onManageAccountClick: () -> Unit) {
 @Composable
 private fun SupportInfoSection(
     uiState: SettingsUIState.Data,
-    appUpgradeEvent: AppUpgradeEvent?,
     onAction: (SettingsScreenAction) -> Unit
 ) {
     Column {
@@ -325,7 +323,7 @@ private fun SupportInfoSection(
                 }
                 AppVersionItem(
                     versionName = uiState.configuration.versionName,
-                    appUpgradeEvent = appUpgradeEvent,
+                    appUpgradeEvent = AppUpdateState.lastAppUpgradeEvent,
                 ) {
                     onAction(SettingsScreenAction.AppVersionClick)
                 }
@@ -692,7 +690,6 @@ private fun SettingsScreenPreview() {
             windowSize = WindowSize(WindowType.Medium, WindowType.Medium),
             uiState = mockUiState,
             onAction = {},
-            appUpgradeEvent = null,
         )
     }
 }

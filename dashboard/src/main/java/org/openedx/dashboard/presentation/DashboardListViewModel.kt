@@ -11,8 +11,6 @@ import org.openedx.core.domain.model.EnrolledCourse
 import org.openedx.core.system.connection.NetworkConnection
 import org.openedx.core.system.notifier.CourseDashboardUpdate
 import org.openedx.core.system.notifier.DiscoveryNotifier
-import org.openedx.core.system.notifier.app.AppNotifier
-import org.openedx.core.system.notifier.app.AppUpgradeEvent
 import org.openedx.dashboard.domain.interactor.DashboardInteractor
 import org.openedx.foundation.extension.isInternetError
 import org.openedx.foundation.presentation.BaseViewModel
@@ -27,7 +25,6 @@ class DashboardListViewModel(
     private val resourceManager: ResourceManager,
     private val discoveryNotifier: DiscoveryNotifier,
     private val analytics: DashboardAnalytics,
-    private val appNotifier: AppNotifier
 ) : BaseViewModel() {
 
     private val coursesList = mutableListOf<EnrolledCourse>()
@@ -55,10 +52,6 @@ class DashboardListViewModel(
     val canLoadMore: LiveData<Boolean>
         get() = _canLoadMore
 
-    private val _appUpgradeEvent = MutableLiveData<AppUpgradeEvent>()
-    val appUpgradeEvent: LiveData<AppUpgradeEvent>
-        get() = _appUpgradeEvent
-
     override fun onCreate(owner: LifecycleOwner) {
         super.onCreate(owner)
         viewModelScope.launch {
@@ -72,7 +65,6 @@ class DashboardListViewModel(
 
     init {
         getCourses()
-        collectAppUpgradeEvent()
     }
 
     fun getCourses() {
@@ -165,16 +157,6 @@ class DashboardListViewModel(
     fun fetchMore() {
         if (!isLoading && page != -1) {
             internalLoadingCourses()
-        }
-    }
-
-    private fun collectAppUpgradeEvent() {
-        viewModelScope.launch {
-            appNotifier.notifier.collect { event ->
-                if (event is AppUpgradeEvent) {
-                    _appUpgradeEvent.value = event
-                }
-            }
         }
     }
 
