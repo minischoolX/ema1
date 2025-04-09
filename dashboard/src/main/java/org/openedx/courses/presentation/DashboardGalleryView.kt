@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -46,6 +47,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -103,6 +105,7 @@ import org.openedx.dashboard.R
 import org.openedx.foundation.extension.toImageLink
 import org.openedx.foundation.presentation.UIMessage
 import org.openedx.foundation.presentation.rememberWindowSize
+import org.openedx.foundation.presentation.windowSizeValue
 import java.util.Date
 import org.openedx.core.R as CoreR
 
@@ -184,6 +187,7 @@ private fun DashboardGalleryView(
     onAction: (DashboardGalleryScreenAction) -> Unit,
     hasInternetConnection: Boolean
 ) {
+    val windowSize = rememberWindowSize()
     val scaffoldState = rememberScaffoldState()
     val pullRefreshState = rememberPullRefreshState(
         refreshing = updating,
@@ -191,6 +195,24 @@ private fun DashboardGalleryView(
     )
     var isInternetConnectionShown by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    val contentWidth by remember(key1 = windowSize) {
+        mutableStateOf(
+            windowSize.windowSizeValue(
+                expanded = Modifier.widthIn(Dp.Unspecified, 560.dp),
+                compact = Modifier.fillMaxWidth(),
+            )
+        )
+    }
+
+    val contentPadding by remember(key1 = windowSize) {
+        mutableStateOf(
+            windowSize.windowSizeValue(
+                expanded = PaddingValues(0.dp),
+                compact = PaddingValues(horizontal = 16.dp)
+            )
+        )
     }
 
     Scaffold(
@@ -209,64 +231,66 @@ private fun DashboardGalleryView(
             color = MaterialTheme.appColors.background
         ) {
             Box(
-                Modifier.fillMaxSize()
+                Modifier
+                    .fillMaxSize()
+                    .pullRefresh(pullRefreshState)
+                    .verticalScroll(rememberScrollState()),
             ) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .pullRefresh(pullRefreshState)
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    when (uiState) {
-                        is DashboardGalleryUIState.Loading -> {
-                            CircularProgressIndicator(
-                                modifier = Modifier.align(Alignment.Center),
-                                color = MaterialTheme.appColors.primary
-                            )
-                        }
-
-                        is DashboardGalleryUIState.Courses -> {
-                            UserCourses(
-                                modifier = Modifier.fillMaxSize(),
-                                userCourses = uiState.userCourses,
-                                useRelativeDates = uiState.useRelativeDates,
-                                apiHostUrl = apiHostUrl,
-                                openCourse = {
-                                    onAction(DashboardGalleryScreenAction.OpenCourse(it))
-                                },
-                                onViewAllClick = {
-                                    onAction(DashboardGalleryScreenAction.ViewAll)
-                                },
-                                navigateToDates = {
-                                    onAction(DashboardGalleryScreenAction.NavigateToDates(it))
-                                },
-                                resumeBlockId = { course, blockId ->
-                                    onAction(DashboardGalleryScreenAction.OpenBlock(course, blockId))
-                                }
-                            )
-                        }
-
-                        is DashboardGalleryUIState.Empty -> {
-                            NoCoursesInfo(
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                            )
-                            FindACourseButton(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter),
-                                findACourseClick = {
-                                    onAction(DashboardGalleryScreenAction.NavigateToDiscovery)
-                                }
-                            )
-                        }
+                when (uiState) {
+                    is DashboardGalleryUIState.Loading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = MaterialTheme.appColors.primary
+                        )
                     }
 
-                    PullRefreshIndicator(
-                        updating,
-                        pullRefreshState,
-                        Modifier.align(Alignment.TopCenter)
-                    )
+                    is DashboardGalleryUIState.Courses -> {
+                        UserCourses(
+                            modifier = contentWidth
+                                .fillMaxHeight()
+                                .padding(vertical = 12.dp)
+                                .displayCutoutForLandscape()
+                                .align(Alignment.TopCenter),
+                            contentPadding = contentPadding,
+                            userCourses = uiState.userCourses,
+                            useRelativeDates = uiState.useRelativeDates,
+                            apiHostUrl = apiHostUrl,
+                            openCourse = {
+                                onAction(DashboardGalleryScreenAction.OpenCourse(it))
+                            },
+                            onViewAllClick = {
+                                onAction(DashboardGalleryScreenAction.ViewAll)
+                            },
+                            navigateToDates = {
+                                onAction(DashboardGalleryScreenAction.NavigateToDates(it))
+                            },
+                            resumeBlockId = { course, blockId ->
+                                onAction(DashboardGalleryScreenAction.OpenBlock(course, blockId))
+                            }
+                        )
+                    }
+
+                    is DashboardGalleryUIState.Empty -> {
+                        NoCoursesInfo(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                        )
+                        FindACourseButton(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter),
+                            findACourseClick = {
+                                onAction(DashboardGalleryScreenAction.NavigateToDiscovery)
+                            }
+                        )
+                    }
                 }
+
+                PullRefreshIndicator(
+                    updating,
+                    pullRefreshState,
+                    Modifier.align(Alignment.TopCenter)
+                )
+
                 if (!isInternetConnectionShown && !hasInternetConnection) {
                     OfflineModeDialog(
                         Modifier
@@ -290,6 +314,7 @@ private fun DashboardGalleryView(
 private fun UserCourses(
     modifier: Modifier = Modifier,
     userCourses: CourseEnrollments,
+    contentPadding: PaddingValues,
     apiHostUrl: String,
     useRelativeDates: Boolean,
     openCourse: (EnrolledCourse) -> Unit,
@@ -299,11 +324,11 @@ private fun UserCourses(
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 12.dp)
     ) {
         val primaryCourse = userCourses.primary
         if (primaryCourse != null) {
             PrimaryCourseCard(
+                modifier = Modifier.padding(contentPadding),
                 primaryCourse = primaryCourse,
                 apiHostUrl = apiHostUrl,
                 navigateToDates = navigateToDates,
@@ -317,6 +342,7 @@ private fun UserCourses(
                 courses = userCourses.enrollments.courses,
                 hasNextPage = userCourses.enrollments.pagination.next.isNotEmpty(),
                 apiHostUrl = apiHostUrl,
+                contentPadding = contentPadding,
                 onCourseClick = openCourse,
                 onViewAllClick = onViewAllClick
             )
@@ -329,6 +355,7 @@ private fun SecondaryCourses(
     courses: List<EnrolledCourse>,
     hasNextPage: Boolean,
     apiHostUrl: String,
+    contentPadding: PaddingValues,
     onCourseClick: (EnrolledCourse) -> Unit,
     onViewAllClick: () -> Unit
 ) {
@@ -348,7 +375,7 @@ private fun SecondaryCourses(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         TextIcon(
-            modifier = Modifier.padding(horizontal = 18.dp),
+            modifier = Modifier.padding(contentPadding),
             text = stringResource(R.string.dashboard_view_all_with_count, courses.size + 1),
             textStyle = MaterialTheme.appTypography.titleSmall,
             icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -361,7 +388,7 @@ private fun SecondaryCourses(
                 .fillMaxSize()
                 .height(height),
             rows = GridCells.Fixed(rows),
-            contentPadding = PaddingValues(horizontal = 18.dp),
+            contentPadding = contentPadding,
             content = {
                 items(items) {
                     CourseListItem(
@@ -526,6 +553,7 @@ private fun AssignmentItem(
 
 @Composable
 private fun PrimaryCourseCard(
+    modifier: Modifier = Modifier,
     primaryCourse: EnrolledCourse,
     apiHostUrl: String,
     useRelativeDates: Boolean,
@@ -535,8 +563,7 @@ private fun PrimaryCourseCard(
 ) {
     val orientation = LocalConfiguration.current.orientation
     Card(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
+        modifier = modifier
             .fillMaxWidth()
             .padding(2.dp),
         backgroundColor = MaterialTheme.appColors.background,
@@ -709,7 +736,7 @@ private fun PrimaryCourseCaption(
         )
         val progress: Float = try {
             primaryCourse.progress.assignmentsCompleted.toFloat() /
-                primaryCourse.progress.totalAssignmentsCount.toFloat()
+                    primaryCourse.progress.totalAssignmentsCount.toFloat()
         } catch (_: ArithmeticException) {
             0f
         }
