@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -61,6 +63,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
@@ -88,6 +91,7 @@ import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.OfflineModeDialog
 import org.openedx.core.ui.OpenEdXButton
 import org.openedx.core.ui.TextIcon
+import org.openedx.core.ui.displayCutoutForLandscape
 import org.openedx.core.ui.theme.OpenEdXTheme
 import org.openedx.core.ui.theme.appColors
 import org.openedx.core.ui.theme.appShapes
@@ -200,6 +204,7 @@ private fun DashboardGalleryView(
         Surface(
             modifier = Modifier
                 .fillMaxSize()
+                .displayCutoutForLandscape()
                 .padding(paddingValues),
             color = MaterialTheme.appColors.background
         ) {
@@ -528,7 +533,7 @@ private fun PrimaryCourseCard(
     resumeBlockId: (enrolledCourse: EnrolledCourse, blockId: String) -> Unit,
     openCourse: (EnrolledCourse) -> Unit,
 ) {
-    val context = LocalContext.current
+    val orientation = LocalConfiguration.current.orientation
     Card(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -538,103 +543,184 @@ private fun PrimaryCourseCard(
         shape = MaterialTheme.appShapes.courseImageShape,
         elevation = 4.dp
     ) {
-        Column(
-            modifier = Modifier
-                .clickable {
-                    openCourse(primaryCourse)
+        when (orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                Row(
+                    modifier = Modifier
+                        .clickable {
+                            openCourse(primaryCourse)
+                        }
+                        .height(IntrinsicSize.Min)
+                ) {
+                    PrimaryCourseCaption(
+                        modifier = Modifier.weight(1f),
+                        primaryCourse = primaryCourse,
+                        apiHostUrl = apiHostUrl,
+                        imageHeight = null,
+                    )
+                    PrimaryCourseButtons(
+                        modifier = Modifier.weight(1f),
+                        primaryCourse = primaryCourse,
+                        navigateToDates = navigateToDates,
+                        resumeBlockId = resumeBlockId,
+                        openCourse = openCourse,
+                        adjustHeight = true,
+                        useRelativeDates = useRelativeDates,
+                    )
                 }
-        ) {
-            AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(primaryCourse.course.courseImage.toImageLink(apiHostUrl))
-                    .error(CoreR.drawable.core_no_image_course)
-                    .placeholder(CoreR.drawable.core_no_image_course)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp)
-            )
-            val progress: Float = try {
-                primaryCourse.progress.assignmentsCompleted.toFloat() /
-                        primaryCourse.progress.totalAssignmentsCount.toFloat()
-            } catch (_: ArithmeticException) {
-                0f
             }
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp),
-                progress = progress,
-                color = MaterialTheme.appColors.primary,
-                backgroundColor = MaterialTheme.appColors.divider
-            )
-            PrimaryCourseTitle(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
-                    .padding(top = 8.dp, bottom = 16.dp),
-                primaryCourse = primaryCourse
-            )
-            val pastAssignments = primaryCourse.courseAssignments?.pastAssignments
-            if (!pastAssignments.isNullOrEmpty()) {
-                val nearestAssignment = pastAssignments.maxBy { it.date }
-                val title = if (pastAssignments.size == 1) nearestAssignment.title else null
-                Divider()
-                AssignmentItem(
+
+            else -> {
+                Column(
                     modifier = Modifier.clickable {
-                        if (pastAssignments.size == 1) {
-                            resumeBlockId(primaryCourse, nearestAssignment.blockId)
-                        } else {
-                            navigateToDates(primaryCourse)
-                        }
-                    },
-                    painter = rememberVectorPainter(Icons.Default.Warning),
-                    title = title,
-                    info = pluralStringResource(
-                        R.plurals.dashboard_past_due_assignment,
-                        pastAssignments.size,
-                        pastAssignments.size
-                    )
-                )
-            }
-            val futureAssignments = primaryCourse.courseAssignments?.futureAssignments
-            if (!futureAssignments.isNullOrEmpty()) {
-                val nearestAssignment = futureAssignments.minBy { it.date }
-                val title = if (futureAssignments.size == 1) nearestAssignment.title else null
-                Divider()
-                AssignmentItem(
-                    modifier = Modifier.clickable {
-                        if (futureAssignments.size == 1) {
-                            resumeBlockId(primaryCourse, nearestAssignment.blockId)
-                        } else {
-                            navigateToDates(primaryCourse)
-                        }
-                    },
-                    painter = painterResource(id = CoreR.drawable.ic_core_chapter_icon),
-                    title = title,
-                    info = stringResource(
-                        R.string.dashboard_assignment_due,
-                        nearestAssignment.assignmentType ?: "",
-                        stringResource(
-                            id = CoreR.string.core_date_format_assignment_due,
-                            TimeUtils.formatToString(context, nearestAssignment.date, useRelativeDates)
-                        )
-                    )
-                )
-            }
-            ResumeButton(
-                primaryCourse = primaryCourse,
-                onClick = {
-                    if (primaryCourse.courseStatus == null) {
                         openCourse(primaryCourse)
-                    } else {
-                        resumeBlockId(primaryCourse, primaryCourse.courseStatus?.lastVisitedBlockId ?: "")
                     }
+                ) {
+                    PrimaryCourseCaption(
+                        primaryCourse = primaryCourse,
+                        apiHostUrl = apiHostUrl,
+                    )
+                    PrimaryCourseButtons(
+                        primaryCourse = primaryCourse,
+                        navigateToDates = navigateToDates,
+                        resumeBlockId = resumeBlockId,
+                        openCourse = openCourse,
+                        useRelativeDates = useRelativeDates,
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PrimaryCourseButtons(
+    modifier: Modifier = Modifier,
+    primaryCourse: EnrolledCourse,
+    useRelativeDates: Boolean,
+    adjustHeight: Boolean = false,
+    navigateToDates: (EnrolledCourse) -> Unit,
+    resumeBlockId: (enrolledCourse: EnrolledCourse, blockId: String) -> Unit,
+    openCourse: (EnrolledCourse) -> Unit,
+) {
+    val context = LocalContext.current
+    val pastAssignments = primaryCourse.courseAssignments?.pastAssignments
+    Column(modifier = modifier) {
+        var titleModifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .padding(top = 8.dp, bottom = 16.dp)
+        if (adjustHeight) {
+            titleModifier = titleModifier.weight(1f)
+        }
+        PrimaryCourseTitle(
+            modifier = titleModifier,
+            primaryCourse = primaryCourse,
+        )
+        Divider()
+        if (!pastAssignments.isNullOrEmpty()) {
+            val nearestAssignment = pastAssignments.maxBy { it.date }
+            val title = if (pastAssignments.size == 1) nearestAssignment.title else null
+            AssignmentItem(
+                modifier = Modifier.clickable {
+                    if (pastAssignments.size == 1) {
+                        resumeBlockId(primaryCourse, nearestAssignment.blockId)
+                    } else {
+                        navigateToDates(primaryCourse)
+                    }
+                },
+                painter = rememberVectorPainter(Icons.Default.Warning),
+                title = title,
+                info = pluralStringResource(
+                    R.plurals.dashboard_past_due_assignment,
+                    pastAssignments.size,
+                    pastAssignments.size
+                )
             )
         }
+        val futureAssignments = primaryCourse.courseAssignments?.futureAssignments
+        if (!futureAssignments.isNullOrEmpty()) {
+            val nearestAssignment = futureAssignments.minBy { it.date }
+            val title = if (futureAssignments.size == 1) nearestAssignment.title else null
+            Divider()
+            AssignmentItem(
+                modifier = Modifier.clickable {
+                    if (futureAssignments.size == 1) {
+                        resumeBlockId(primaryCourse, nearestAssignment.blockId)
+                    } else {
+                        navigateToDates(primaryCourse)
+                    }
+                },
+                painter = painterResource(id = CoreR.drawable.ic_core_chapter_icon),
+                title = title,
+                info = stringResource(
+                    R.string.dashboard_assignment_due,
+                    nearestAssignment.assignmentType ?: "",
+                    stringResource(
+                        id = CoreR.string.core_date_format_assignment_due,
+                        TimeUtils.formatToString(context, nearestAssignment.date, useRelativeDates),
+                    )
+                )
+            )
+        }
+        ResumeButton(
+            primaryCourse = primaryCourse,
+            onClick = {
+                if (primaryCourse.courseStatus == null) {
+                    openCourse(primaryCourse)
+                } else {
+                    resumeBlockId(
+                        primaryCourse,
+                        primaryCourse.courseStatus?.lastVisitedBlockId ?: ""
+                    )
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun PrimaryCourseCaption(
+    modifier: Modifier = Modifier,
+    primaryCourse: EnrolledCourse,
+    imageHeight: Dp? = 140.dp,
+    apiHostUrl: String,
+) {
+    val context = LocalContext.current
+    Column(modifier = modifier) {
+        val imageModifier = imageHeight?.let {
+            Modifier
+                .height(it)
+                .fillMaxWidth()
+        } ?: Modifier
+            .height(IntrinsicSize.Max)
+            .fillMaxWidth()
+            .weight(1f)
+
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(primaryCourse.course.courseImage.toImageLink(apiHostUrl))
+                .error(CoreR.drawable.core_no_image_course)
+                .placeholder(CoreR.drawable.core_no_image_course)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = imageModifier,
+        )
+        val progress: Float = try {
+            primaryCourse.progress.assignmentsCompleted.toFloat() /
+                primaryCourse.progress.totalAssignmentsCount.toFloat()
+        } catch (_: ArithmeticException) {
+            0f
+        }
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp),
+            progress = progress,
+            color = MaterialTheme.appColors.primary,
+            backgroundColor = MaterialTheme.appColors.divider
+        )
     }
 }
 
@@ -704,7 +790,7 @@ private fun PrimaryCourseTitle(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -713,7 +799,9 @@ private fun PrimaryCourseTitle(
             color = MaterialTheme.appColors.textFieldHint
         )
         Text(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
             text = primaryCourse.course.name,
             style = MaterialTheme.appTypography.titleLarge,
             color = MaterialTheme.appColors.textDark,
@@ -721,7 +809,9 @@ private fun PrimaryCourseTitle(
             maxLines = 3
         )
         Text(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
             style = MaterialTheme.appTypography.labelMedium,
             color = MaterialTheme.appColors.textFieldHint,
             text = TimeUtils.getCourseFormattedDate(
