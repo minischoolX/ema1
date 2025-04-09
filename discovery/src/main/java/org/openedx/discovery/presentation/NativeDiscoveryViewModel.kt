@@ -3,15 +3,11 @@ package org.openedx.discovery.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.openedx.core.R
 import org.openedx.core.config.Config
 import org.openedx.core.data.storage.CorePreferences
 import org.openedx.core.system.connection.NetworkConnection
-import org.openedx.core.system.notifier.app.AppNotifier
-import org.openedx.core.system.notifier.app.AppUpgradeEvent
 import org.openedx.discovery.domain.interactor.DiscoveryInteractor
 import org.openedx.discovery.domain.model.Course
 import org.openedx.foundation.extension.isInternetError
@@ -26,7 +22,6 @@ class NativeDiscoveryViewModel(
     private val interactor: DiscoveryInteractor,
     private val resourceManager: ResourceManager,
     private val analytics: DiscoveryAnalytics,
-    private val appNotifier: AppNotifier,
     private val corePreferences: CorePreferences,
 ) : BaseViewModel() {
 
@@ -51,10 +46,6 @@ class NativeDiscoveryViewModel(
     val isUpdating: LiveData<Boolean>
         get() = _isUpdating
 
-    private val _appUpgradeEvent = MutableLiveData<AppUpgradeEvent>()
-    val appUpgradeEvent: LiveData<AppUpgradeEvent>
-        get() = _appUpgradeEvent
-
     val hasInternetConnection: Boolean
         get() = networkConnection.isOnline()
 
@@ -64,7 +55,6 @@ class NativeDiscoveryViewModel(
 
     init {
         getCoursesList()
-        collectAppUpgradeEvent()
     }
 
     private fun loadCoursesInternal(
@@ -156,24 +146,6 @@ class NativeDiscoveryViewModel(
     fun fetchMore() {
         if (!isLoading && page != -1) {
             loadCoursesInternal()
-        }
-    }
-
-    @OptIn(FlowPreview::class)
-    private fun collectAppUpgradeEvent() {
-        viewModelScope.launch {
-            appNotifier.notifier
-                .debounce(100)
-                .collect { event ->
-                    when (event) {
-                        is AppUpgradeEvent.UpgradeRecommendedEvent -> {
-                            _appUpgradeEvent.value = event
-                        }
-                        is AppUpgradeEvent.UpgradeRequiredEvent -> {
-                            _appUpgradeEvent.value = AppUpgradeEvent.UpgradeRequiredEvent
-                        }
-                    }
-                }
         }
     }
 

@@ -8,10 +8,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -31,7 +29,6 @@ import org.openedx.core.domain.model.Pagination
 import org.openedx.core.system.connection.NetworkConnection
 import org.openedx.core.system.notifier.CourseDashboardUpdate
 import org.openedx.core.system.notifier.DiscoveryNotifier
-import org.openedx.core.system.notifier.app.AppNotifier
 import org.openedx.dashboard.domain.interactor.DashboardInteractor
 import org.openedx.foundation.presentation.UIMessage
 import org.openedx.foundation.system.ResourceManager
@@ -51,7 +48,6 @@ class DashboardListViewModelTest {
     private val networkConnection = mockk<NetworkConnection>()
     private val discoveryNotifier = mockk<DiscoveryNotifier>()
     private val analytics = mockk<DashboardAnalytics>()
-    private val appNotifier = mockk<AppNotifier>()
 
     private val noInternet = "Slow or no internet connection"
     private val somethingWrong = "Something went wrong"
@@ -66,7 +62,6 @@ class DashboardListViewModelTest {
         Dispatchers.setMain(dispatcher)
         every { resourceManager.getString(R.string.core_error_no_connection) } returns noInternet
         every { resourceManager.getString(R.string.core_error_unknown_error) } returns somethingWrong
-        every { appNotifier.notifier } returns emptyFlow()
         every { config.getApiHostURL() } returns "http://localhost:8000"
     }
 
@@ -84,7 +79,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
         every { networkConnection.isOnline() } returns true
         coEvery { interactor.getEnrolledCourses(any()) } throws UnknownHostException()
@@ -92,7 +86,6 @@ class DashboardListViewModelTest {
 
         coVerify(exactly = 1) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 0) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
 
         val message = viewModel.uiMessage.value as? UIMessage.SnackBarMessage
         assertEquals(noInternet, message?.message)
@@ -108,7 +101,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
         every { networkConnection.isOnline() } returns true
         coEvery { interactor.getEnrolledCourses(any()) } throws Exception()
@@ -116,7 +108,6 @@ class DashboardListViewModelTest {
 
         coVerify(exactly = 1) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 0) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
 
         val message = viewModel.uiMessage.value as? UIMessage.SnackBarMessage
         assertEquals(somethingWrong, message?.message)
@@ -132,7 +123,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
         every { networkConnection.isOnline() } returns true
         coEvery { interactor.getEnrolledCourses(any()) } returns dashboardCourseList
@@ -141,7 +131,6 @@ class DashboardListViewModelTest {
 
         coVerify(exactly = 1) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 0) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
 
         assert(viewModel.uiMessage.value == null)
         assert(viewModel.uiState.value is DashboardUIState.Courses)
@@ -156,7 +145,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
         every { networkConnection.isOnline() } returns true
         coEvery { interactor.getEnrolledCourses(any()) } returns dashboardCourseList.copy(
@@ -173,7 +161,6 @@ class DashboardListViewModelTest {
 
         coVerify(exactly = 1) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 0) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
 
         assert(viewModel.uiMessage.value == null)
         assert(viewModel.uiState.value is DashboardUIState.Courses)
@@ -190,14 +177,12 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
 
         advanceUntilIdle()
 
         coVerify(exactly = 0) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 1) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
 
         assert(viewModel.uiMessage.value == null)
         assert(viewModel.uiState.value is DashboardUIState.Courses)
@@ -214,7 +199,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
 
         coEvery { interactor.getEnrolledCourses(any()) } throws UnknownHostException()
@@ -223,7 +207,6 @@ class DashboardListViewModelTest {
 
         coVerify(exactly = 2) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 0) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
 
         val message = viewModel.uiMessage.value as? UIMessage.SnackBarMessage
         assertEquals(noInternet, message?.message)
@@ -242,7 +225,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
 
         coEvery { interactor.getEnrolledCourses(any()) } throws Exception()
@@ -251,7 +233,6 @@ class DashboardListViewModelTest {
 
         coVerify(exactly = 2) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 0) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
 
         val message = viewModel.uiMessage.value as? UIMessage.SnackBarMessage
         assertEquals(somethingWrong, message?.message)
@@ -270,7 +251,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
 
         viewModel.updateCourses()
@@ -278,8 +258,6 @@ class DashboardListViewModelTest {
 
         coVerify(exactly = 2) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 0) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
-
         assert(viewModel.uiMessage.value == null)
         assert(viewModel.updating.value == false)
         assert(viewModel.uiState.value is DashboardUIState.Courses)
@@ -303,7 +281,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
 
         viewModel.updateCourses()
@@ -311,8 +288,6 @@ class DashboardListViewModelTest {
 
         coVerify(exactly = 2) { interactor.getEnrolledCourses(any()) }
         coVerify(exactly = 0) { interactor.getEnrolledCoursesFromCache() }
-        verify(exactly = 1) { appNotifier.notifier }
-
         assert(viewModel.uiMessage.value == null)
         assert(viewModel.updating.value == false)
         assert(viewModel.uiState.value is DashboardUIState.Courses)
@@ -328,7 +303,6 @@ class DashboardListViewModelTest {
             resourceManager,
             discoveryNotifier,
             analytics,
-            appNotifier
         )
 
         val mockLifeCycleOwner: LifecycleOwner = mockk()
@@ -339,6 +313,5 @@ class DashboardListViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { interactor.getEnrolledCourses(any()) }
-        verify(exactly = 1) { appNotifier.notifier }
     }
 }

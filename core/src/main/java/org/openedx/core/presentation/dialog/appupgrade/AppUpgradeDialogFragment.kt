@@ -33,12 +33,12 @@ class AppUpgradeDialogFragment : DialogFragment() {
     }
 
     private fun onNotNowClick() {
-        AppUpdateState.wasUpdateDialogClosed.value = true
+        AppUpdateState.wasUpgradeDialogClosed.value = true
         dismiss()
     }
 
     private fun onUpdateClick() {
-        AppUpdateState.wasUpdateDialogClosed.value = true
+        AppUpdateState.wasUpgradeDialogClosed.value = true
         dismiss()
         AppUpdateState.openPlayMarket(requireContext())
     }

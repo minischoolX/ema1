@@ -3,23 +3,29 @@ package org.openedx.core
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.net.toUri
 import org.openedx.core.system.notifier.app.AppUpgradeEvent
 
 object AppUpdateState {
     var wasUpdateDialogDisplayed = false
-    var wasUpdateDialogClosed = mutableStateOf(false)
+    var wasUpgradeDialogClosed = mutableStateOf(false)
+    var lastAppUpgradeEvent: AppUpgradeEvent? = null
 
     fun openPlayMarket(context: Context) {
         try {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}")))
+            context.startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    "market://details?id=${context.packageName}".toUri()
+                )
+            )
         } catch (e: ActivityNotFoundException) {
             e.printStackTrace()
             context.startActivity(
                 Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+                    "https://play.google.com/store/apps/details?id=${context.packageName}".toUri()
                 )
             )
         }
@@ -27,7 +33,7 @@ object AppUpdateState {
 
     data class AppUpgradeParameters(
         val appUpgradeEvent: AppUpgradeEvent? = null,
-        val wasUpdateDialogClosed: Boolean = AppUpdateState.wasUpdateDialogClosed.value,
+        val wasUpgradeDialogClosed: Boolean = AppUpdateState.wasUpgradeDialogClosed.value,
         val appUpgradeRecommendedDialog: () -> Unit = {},
         val onAppUpgradeRecommendedBoxClick: () -> Unit = {},
         val onAppUpgradeRequired: () -> Unit = {},
