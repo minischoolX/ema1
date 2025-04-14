@@ -35,7 +35,7 @@ class CourseInteractor(
         return repository.getEnrollmentDetailsFlow(courseId)
     }
 
-    suspend fun getEnrollmentDetails(courseId: String): CourseEnrollmentDetails {
+    private suspend fun getEnrollmentDetails(courseId: String): CourseEnrollmentDetails {
         return repository.getEnrollmentDetails(courseId = courseId)
     }
 
@@ -84,11 +84,11 @@ class CourseInteractor(
 
     suspend fun getCourseStatusFlow(courseId: String) = repository.getCourseStatusFlow(courseId)
 
-    suspend fun getCourseStatus(courseId: String) = repository.getCourseStatus(courseId)
+    private suspend fun getCourseStatus(courseId: String) = repository.getCourseStatus(courseId)
 
     suspend fun getCourseDatesFlow(courseId: String) = repository.getCourseDatesFlow(courseId)
 
-    suspend fun getCourseDates(courseId: String) = repository.getCourseDates(courseId)
+    private suspend fun getCourseDates(courseId: String) = repository.getCourseDates(courseId)
 
     suspend fun resetCourseDates(courseId: String) = repository.resetCourseDates(courseId)
 

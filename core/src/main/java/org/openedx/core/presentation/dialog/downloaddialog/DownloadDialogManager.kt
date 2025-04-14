@@ -11,11 +11,17 @@ import androidx.fragment.app.FragmentManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.openedx.core.BlockType
 import org.openedx.core.data.storage.CorePreferences
 import org.openedx.core.domain.interactor.CourseInteractor
 import org.openedx.core.domain.model.Block
+import org.openedx.core.extension.collectLatestNotNull
 import org.openedx.core.domain.model.DownloadCoursePreview
 import org.openedx.core.module.DownloadWorkerController
 import org.openedx.core.module.db.DownloadModel
@@ -122,7 +128,7 @@ class DownloadDialogManager(
                 if (dialog != null) {
                     dialog.listener = dialogListener
                     dialog.show(state.fragmentManager, dialog::class.java.simpleName)
-                } else {
+                    } else {
                     state.onConfirmClick()
                     state.saveDownloadModels()
                 }
@@ -214,10 +220,14 @@ class DownloadDialogManager(
             val notDownloadedSubSections = mutableListOf<Block>()
             val allDownloadDialogItems = mutableListOf<DownloadDialogItem>()
 
-            courseIds.forEach { courseId ->
-                val courseStructure = interactor.getCourseStructureFromCache(courseId)
-                val allSubSectionBlocks =
-                    courseStructure.blockData.filter { it.type == BlockType.SEQUENTIAL }
+            val jobs = courseIds.map { courseId ->
+                interactor.getCourseStructureFlow(courseId)
+                    .catch { emit(null) }
+                    .mapNotNull { it }
+                    .onEach { courseStructure ->
+                        val blockData =
+                    courseStructure.blockData
+                        val blockMap = blockData.associateBy { it.id }
 
                 allSubSectionBlocks.forEach { subSectionBlock ->
                     val verticalBlocks =
@@ -269,29 +279,27 @@ class DownloadDialogManager(
         onConfirmClick: () -> Unit = {},
     ) {
         coroutineScope.launch {
-            val courseStructure = interactor.getCourseStructure(courseId, false)
             val downloadModelIds = interactor.getAllDownloadModels().map { it.id }
-
-            val downloadDialogItems = subSectionsBlocks.mapNotNull { subSectionBlock ->
-                val verticalBlocks =
-                    courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
-                val blocks = verticalBlocks.flatMap { verticalBlock ->
-                    courseStructure.blockData.filter {
-                        it.id in verticalBlock.descendants &&
-                                (isBlocksDownloaded == (it.id in downloadModelIds)) &&
-                                (!onlyVideoBlocks || it.type == BlockType.VIDEO)
-                    }
-                }
-                val size = blocks.sumOf { it.getFileSize() }
-                if (size > 0) {
-                    DownloadDialogItem(
-                        title = subSectionBlock.displayName,
-                        size = size
-                    )
-                } else {
-                    null
-                }
-            }
+            interactor.getCourseStructureFlow(courseId, false)
+                .catch { emit(null) }
+                .collectLatestNotNull { courseStructure ->
+                    val downloadDialogItems = subSectionsBlocks.mapNotNull { subSectionBlock ->
+                        val verticalBlocks =
+                            courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
+                        val blocks = verticalBlocks.flatMap { verticalBlock ->
+                            courseStructure.blockData.filter {
+                                it.id in verticalBlock.descendants &&
+                                        (isBlocksDownloaded == (it.id in downloadModelIds)) &&
+                                        (!onlyVideoBlocks || it.type == BlockType.VIDEO)
+                            }
+                        }
+                        val size = blocks.sumOf { it.getFileSize() }
+                        if (size > 0) {DownloadDialogItem(
+                            title = subSectionBlock.displayName,
+                            size = size
+                        )
+                } else {null
+                    }}
 
             uiState.emit(
                 DownloadDialogUIState(

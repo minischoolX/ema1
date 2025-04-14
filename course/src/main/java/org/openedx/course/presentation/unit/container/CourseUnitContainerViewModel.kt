@@ -6,12 +6,15 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openedx.core.BlockType
 import org.openedx.core.config.Config
 import org.openedx.core.domain.model.Block
+import org.openedx.core.domain.model.CourseStructure
+import org.openedx.core.extension.collectLatestNotNull
 import org.openedx.core.module.db.DownloadModel
 import org.openedx.core.module.db.DownloadedState
 import org.openedx.core.presentation.course.CourseViewMode
@@ -89,19 +92,29 @@ class CourseUnitContainerViewModel(
         currentMode = mode
         viewModelScope.launch {
             try {
-                val courseStructure = when (mode) {
-                    CourseViewMode.FULL -> interactor.getCourseStructure(courseId)
-                    CourseViewMode.VIDEOS -> interactor.getCourseStructureForVideos(courseId)
+                when (mode) {
+                    CourseViewMode.FULL -> {
+                        interactor.getCourseStructureFlow(courseId)
+                            .catch { e -> throw e }
+                            .collectLatestNotNull { postLoadBlocks(it, componentId) }
+                    }
+                    CourseViewMode.VIDEOS -> {
+                        val courseStructure = interactor.getCourseStructureForVideos(courseId)
+                        postLoadBlocks(courseStructure, componentId)
+                    }
                 }
-                val blocks = courseStructure.blockData
-                courseName = courseStructure.name
-                this@CourseUnitContainerViewModel.blocks.clearAndAddAll(blocks)
-
-                setupCurrentIndex(componentId)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+    }
+
+    private fun postLoadBlocks(courseStructure: CourseStructure, componentId: String) {
+        val blocks = courseStructure.blockData
+        courseName = courseStructure.name
+        this.blocks.clearAndAddAll(blocks)
+
+        setupCurrentIndex(componentId)
     }
 
     init {
