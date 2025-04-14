@@ -116,14 +116,6 @@ class Config(context: Context) {
         return getBoolean(REGISTRATION_ENABLED, true)
     }
 
-    fun isBrowserLoginEnabled(): Boolean {
-        return getBoolean(BROWSER_LOGIN, false)
-    }
-
-    fun isBrowserRegistrationEnabled(): Boolean {
-        return getBoolean(BROWSER_REGISTRATION, false)
-    }
-
     private fun getExperimentalFeaturesConfig(): ExperimentalFeaturesConfig {
         return getObjectOrNewInstance(EXPERIMENTAL_FEATURES, ExperimentalFeaturesConfig::class.java)
     }
@@ -182,8 +174,6 @@ class Config(context: Context) {
         private const val MICROSOFT = "MICROSOFT"
         private const val PRE_LOGIN_EXPERIENCE_ENABLED = "PRE_LOGIN_EXPERIENCE_ENABLED"
         private const val REGISTRATION_ENABLED = "REGISTRATION_ENABLED"
-        private const val BROWSER_LOGIN = "BROWSER_LOGIN"
-        private const val BROWSER_REGISTRATION = "BROWSER_REGISTRATION"
         private const val DISCOVERY = "DISCOVERY"
         private const val PROGRAM = "PROGRAM"
         private const val DASHBOARD = "DASHBOARD"

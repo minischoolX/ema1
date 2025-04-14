@@ -25,8 +25,7 @@ class SignInFragment : Fragment() {
     private val viewModel: SignInViewModel by viewModel {
         parametersOf(
             requireArguments().getString(ARG_COURSE_ID, ""),
-            requireArguments().getString(ARG_INFO_TYPE, ""),
-            requireArguments().getString(ARG_AUTH_CODE, ""),
+            requireArguments().getString(ARG_INFO_TYPE, "")
         )
     }
 
@@ -44,9 +43,6 @@ class SignInFragment : Fragment() {
                 val appUpgradeEvent by viewModel.appUpgradeEvent.observeAsState(null)
 
                 if (appUpgradeEvent == null) {
-                    if (viewModel.authCode != "" && !state.loginFailure && !state.loginSuccess) {
-                        viewModel.signInAuthCode(viewModel.authCode)
-                    }
                     LoginScreen(
                         windowSize = windowSize,
                         state = state,
@@ -61,10 +57,6 @@ class SignInFragment : Fragment() {
 
                                 AuthEvent.ForgotPasswordClick -> {
                                     viewModel.navigateToForgotPassword(parentFragmentManager)
-                                }
-
-                                AuthEvent.SignInBrowser -> {
-                                    viewModel.signInBrowser(requireActivity())
                                 }
 
                                 AuthEvent.RegisterClick -> {
@@ -100,13 +92,11 @@ class SignInFragment : Fragment() {
     companion object {
         private const val ARG_COURSE_ID = "courseId"
         private const val ARG_INFO_TYPE = "info_type"
-        private const val ARG_AUTH_CODE = "auth_code"
-        fun newInstance(courseId: String?, infoType: String?, authCode: String? = null): SignInFragment {
+        fun newInstance(courseId: String?, infoType: String?): SignInFragment {
             val fragment = SignInFragment()
             fragment.arguments = bundleOf(
                 ARG_COURSE_ID to courseId,
-                ARG_INFO_TYPE to infoType,
-                ARG_AUTH_CODE to authCode,
+                ARG_INFO_TYPE to infoType
             )
             return fragment
         }
@@ -117,7 +107,6 @@ internal sealed interface AuthEvent {
     data class SignIn(val login: String, val password: String) : AuthEvent
     data class SocialSignIn(val authType: AuthType) : AuthEvent
     data class OpenLink(val links: Map<String, String>, val link: String) : AuthEvent
-    object SignInBrowser : AuthEvent
     object RegisterClick : AuthEvent
     object ForgotPasswordClick : AuthEvent
     object BackClick : AuthEvent

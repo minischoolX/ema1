@@ -103,13 +103,11 @@ val screenModule = module {
             get(),
             get(),
             get(),
-            get(),
         )
     }
 
-    viewModel { (courseId: String?, infoType: String?, authCode: String) ->
+    viewModel { (courseId: String?, infoType: String?) ->
         SignInViewModel(
-            get(),
             get(),
             get(),
             get(),
@@ -125,7 +123,6 @@ val screenModule = module {
             get(),
             courseId,
             infoType,
-            authCode,
         )
     }
 
