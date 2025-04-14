@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -199,13 +200,13 @@ class CourseSectionViewModelTest {
             analytics,
         )
 
-        coEvery { interactor.getCourseStructure(any()) } throws UnknownHostException()
+        coEvery { interactor.getCourseStructureFlow(any()) } throws UnknownHostException()
         coEvery { interactor.getCourseStructureForVideos(any()) } throws UnknownHostException()
 
         viewModel.getBlocks("", CourseViewMode.FULL)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { interactor.getCourseStructure(any()) }
+        coVerify(exactly = 1) { interactor.getCourseStructureFlow(any()) }
         coVerify(exactly = 0) { interactor.getCourseStructureForVideos(any()) }
 
         val message = viewModel.uiMessage.value as? UIMessage.SnackBarMessage
@@ -224,13 +225,13 @@ class CourseSectionViewModelTest {
             analytics,
         )
 
-        coEvery { interactor.getCourseStructure(any()) } throws Exception()
+        coEvery { interactor.getCourseStructureFlow(any()) } throws Exception()
         coEvery { interactor.getCourseStructureForVideos(any()) } throws Exception()
 
         viewModel.getBlocks("id2", CourseViewMode.FULL)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { interactor.getCourseStructure(any()) }
+        coVerify(exactly = 1) { interactor.getCourseStructureFlow(any()) }
         coVerify(exactly = 0) { interactor.getCourseStructureForVideos(any()) }
 
         val message = viewModel.uiMessage.value as? UIMessage.SnackBarMessage
@@ -254,13 +255,13 @@ class CourseSectionViewModelTest {
         coEvery { downloadDao.getAllDataFlow() } returns flow {
             emit(listOf(DownloadModelEntity.createFrom(downloadModel)))
         }
-        coEvery { interactor.getCourseStructure(any()) } returns courseStructure
+        coEvery { interactor.getCourseStructureFlow(any()) } returns flowOf(courseStructure)
         coEvery { interactor.getCourseStructureForVideos(any()) } returns courseStructure
 
         viewModel.getBlocks("id", CourseViewMode.VIDEOS)
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { interactor.getCourseStructure(any()) }
+        coVerify(exactly = 0) { interactor.getCourseStructureFlow(any()) }
         coVerify(exactly = 1) { interactor.getCourseStructureForVideos(any()) }
 
         assert(viewModel.uiMessage.value == null)
@@ -328,7 +329,7 @@ class CourseSectionViewModelTest {
         )
 
         coEvery { notifier.notifier } returns flow { }
-        coEvery { interactor.getCourseStructure(any()) } returns courseStructure
+        coEvery { interactor.getCourseStructureFlow(any()) } returns flowOf(courseStructure)
         coEvery { interactor.getCourseStructureForVideos(any()) } returns courseStructure
 
         val mockLifeCycleOwner: LifecycleOwner = mockk()

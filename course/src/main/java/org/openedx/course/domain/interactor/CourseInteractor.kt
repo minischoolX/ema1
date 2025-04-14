@@ -13,21 +13,21 @@ class CourseInteractor(
     private val repository: CourseRepository
 ) : CourseInteractor {
 
-    suspend fun getCourseStructureFlow(
+    override suspend fun getCourseStructureFlow(
         courseId: String,
-        forceRefresh: Boolean = true
+        forceRefresh: Boolean
     ): Flow<CourseStructure?> {
         return repository.getCourseStructureFlow(courseId, forceRefresh)
     }
 
-    override suspend fun getCourseStructure(
+    private suspend fun getCourseStructure(
         courseId: String,
         isNeedRefresh: Boolean
     ): CourseStructure {
         return repository.getCourseStructure(courseId, isNeedRefresh)
     }
 
-    override suspend fun getCourseStructureFromCache(courseId: String): CourseStructure {
+    private suspend fun getCourseStructureFromCache(courseId: String): CourseStructure {
         return repository.getCourseStructureFromCache(courseId)
     }
 

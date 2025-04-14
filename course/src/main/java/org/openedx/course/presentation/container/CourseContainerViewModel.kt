@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
@@ -26,7 +27,6 @@ import org.openedx.core.domain.model.CourseDatesCalendarSync
 import org.openedx.core.domain.model.CourseEnrollmentDetails
 import org.openedx.core.domain.model.CourseStructure
 import org.openedx.core.exception.NoCachedDataException
-import org.openedx.core.extension.collectLatestNotNull
 import org.openedx.core.extension.isFalse
 import org.openedx.core.extension.isTrue
 import org.openedx.core.presentation.settings.calendarsync.CalendarSyncDialogType
@@ -318,13 +318,12 @@ class CourseContainerViewModel(
         viewModelScope.launch {
             interactor.getCourseStructureFlow(courseId)
                 .catch {
-                    _errorMessage.value =
-                        resourceManager.getString(CoreR.string.core_error_unknown_error)
+                    _errorMessage.value = resourceManager.getString(CoreR.string.core_error_unknown_error)
                 }.onCompletion {
                     _refreshing.value = false
-                }.collectLatestNotNull { _ ->
                     courseNotifier.send(CourseStructureUpdated(courseId))
                 }
+                .collect()
         }
     }
 

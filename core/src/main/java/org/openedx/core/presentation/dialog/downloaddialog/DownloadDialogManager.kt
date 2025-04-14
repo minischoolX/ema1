@@ -21,8 +21,8 @@ import org.openedx.core.BlockType
 import org.openedx.core.data.storage.CorePreferences
 import org.openedx.core.domain.interactor.CourseInteractor
 import org.openedx.core.domain.model.Block
-import org.openedx.core.extension.collectLatestNotNull
 import org.openedx.core.domain.model.DownloadCoursePreview
+import org.openedx.core.extension.collectLatestNotNull
 import org.openedx.core.module.DownloadWorkerController
 import org.openedx.core.module.db.DownloadModel
 import org.openedx.core.system.StorageManager
@@ -128,7 +128,7 @@ class DownloadDialogManager(
                 if (dialog != null) {
                     dialog.listener = dialogListener
                     dialog.show(state.fragmentManager, dialog::class.java.simpleName)
-                    } else {
+                } else {
                     state.onConfirmClick()
                     state.saveDownloadModels()
                 }
@@ -221,33 +221,34 @@ class DownloadDialogManager(
             val allDownloadDialogItems = mutableListOf<DownloadDialogItem>()
 
             val jobs = courseIds.map { courseId ->
-                interactor.getCourseStructureFlow(courseId)
+                interactor.getCourseStructureFlow(courseId, false)
                     .catch { emit(null) }
                     .mapNotNull { it }
                     .onEach { courseStructure ->
-                        val blockData =
-                    courseStructure.blockData
-                        val blockMap = blockData.associateBy { it.id }
+                        val allSubSectionBlocks =
+                            courseStructure.blockData.filter { it.type == BlockType.SEQUENTIAL }
 
-                allSubSectionBlocks.forEach { subSectionBlock ->
-                    val verticalBlocks =
-                        courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
-                    val blocks = courseStructure.blockData.filter {
-                        it.id in verticalBlocks.flatMap { it.descendants } && it.id in blockIds
-                    }
-                    val totalSize = blocks.sumOf { it.getFileSize() }
+                        allSubSectionBlocks.forEach { subSectionBlock ->
+                            val verticalBlocks =
+                                courseStructure.blockData.filter { it.id in subSectionBlock.descendants }
+                            val blocks = courseStructure.blockData.filter {
+                                it.id in verticalBlocks.flatMap { it.descendants } && it.id in blockIds
+                            }
+                            val totalSize = blocks.sumOf { it.getFileSize() }
 
-                    if (blocks.isNotEmpty()) notDownloadedSubSections.add(subSectionBlock)
-                    if (totalSize > 0) {
-                        allDownloadDialogItems.add(
-                            DownloadDialogItem(
-                                title = subSectionBlock.displayName,
-                                size = totalSize
-                            )
-                        )
+                            if (blocks.isNotEmpty()) notDownloadedSubSections.add(subSectionBlock)
+                            if (totalSize > 0) {
+                                allDownloadDialogItems.add(
+                                    DownloadDialogItem(
+                                        title = subSectionBlock.displayName,
+                                        size = totalSize
+                                    )
+                                )
+                            }
+                        }
                     }
-                }
-            }
+            }.map { flow -> coroutineScope.launch { flow.collect() } }
+            jobs.joinAll()
 
             uiState.emit(
                 DownloadDialogUIState(
@@ -294,33 +295,37 @@ class DownloadDialogManager(
                             }
                         }
                         val size = blocks.sumOf { it.getFileSize() }
-                        if (size > 0) {DownloadDialogItem(
-                            title = subSectionBlock.displayName,
-                            size = size
-                        )
-                } else {null
-                    }}
-
-            uiState.emit(
-                DownloadDialogUIState(
-                    downloadDialogItems = downloadDialogItems,
-                    isAllBlocksDownloaded = isBlocksDownloaded,
-                    isDownloadFailed = false,
-                    sizeSum = downloadDialogItems.sumOf { it.size },
-                    fragmentManager = fragmentManager,
-                    removeDownloadModels = {
-                        subSectionsBlocks.forEach {
-                            removeDownloadModels(
-                                it.id,
-                                courseId
+                        if (size > 0) {
+                            DownloadDialogItem(
+                                title = subSectionBlock.displayName,
+                                size = size
                             )
+                        } else {
+                            null
                         }
-                    },
-                    saveDownloadModels = { subSectionsBlocks.forEach { saveDownloadModels(it.id) } },
-                    onDismissClick = onDismissClick,
-                    onConfirmClick = onConfirmClick,
-                )
-            )
+                    }
+
+                    uiState.emit(
+                        DownloadDialogUIState(
+                            downloadDialogItems = downloadDialogItems,
+                            isAllBlocksDownloaded = isBlocksDownloaded,
+                            isDownloadFailed = false,
+                            sizeSum = downloadDialogItems.sumOf { it.size },
+                            fragmentManager = fragmentManager,
+                            removeDownloadModels = {
+                                subSectionsBlocks.forEach {
+                                    removeDownloadModels(
+                                        it.id,
+                                        courseId
+                                    )
+                                }
+                            },
+                            saveDownloadModels = { subSectionsBlocks.forEach { saveDownloadModels(it.id) } },
+                            onDismissClick = onDismissClick,
+                            onConfirmClick = onConfirmClick,
+                        )
+                    )
+                }
         }
     }
 
