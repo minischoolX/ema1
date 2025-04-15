@@ -23,7 +23,7 @@ import org.openedx.discovery.data.converter.DiscoveryConverter
 import org.openedx.discovery.data.model.room.CourseEntity
 import org.openedx.discovery.data.storage.DiscoveryDao
 
-const val DATABASE_VERSION = 2
+const val LATEST_DATABASE_VERSION = 3
 const val DATABASE_NAME = "OpenEdX_db"
 
 @Database(
@@ -40,9 +40,10 @@ const val DATABASE_NAME = "OpenEdX_db"
         CourseDateEntity::class,
     ],
     autoMigrations = [
-        AutoMigration(1, DATABASE_VERSION)
+        AutoMigration(1, 2),
+        AutoMigration(2, LATEST_DATABASE_VERSION)
     ],
-    version = DATABASE_VERSION
+    version = LATEST_DATABASE_VERSION
 )
 @TypeConverters(DiscoveryConverter::class, CourseConverter::class)
 abstract class AppDatabase : RoomDatabase() {
