@@ -41,6 +41,7 @@ class MainViewModel(
     val isDiscoveryTypeWebView get() = config.getDiscoveryConfig().isViewTypeWebView()
     val getDiscoveryFragment get() = DiscoveryNavigator(isDiscoveryTypeWebView).getDiscoveryFragment()
 
+    val isDatesFragmentEnabled get() = config.getDatesConfig().isEnabled
     val isDownloadsFragmentEnabled get() = config.getDownloadsConfig().isEnabled
 
     override fun onCreate(owner: LifecycleOwner) {
@@ -63,6 +64,10 @@ class MainViewModel(
 
     fun logDownloadsTabClickedEvent() {
         logScreenEvent(AppAnalyticsEvent.DOWNLOADS)
+    }
+
+    fun logDatesTabClickedEvent() {
+        logScreenEvent(AppAnalyticsEvent.DATES)
     }
 
     fun logProfileTabClickedEvent() {

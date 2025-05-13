@@ -6,6 +6,7 @@ import org.openedx.core.data.model.BlocksCompletionBody
 import org.openedx.core.data.model.CourseComponentStatus
 import org.openedx.core.data.model.CourseDates
 import org.openedx.core.data.model.CourseDatesBannerInfo
+import org.openedx.core.data.model.CourseDatesResponse
 import org.openedx.core.data.model.CourseEnrollmentDetails
 import org.openedx.core.data.model.CourseEnrollments
 import org.openedx.core.data.model.CourseStructureModel
@@ -61,7 +62,9 @@ interface CourseApi {
     )
 
     @GET("/api/course_home/v1/dates/{course_id}")
-    suspend fun getCourseDates(@Path("course_id") courseId: String): CourseDates
+    suspend fun getCourseDates(
+        @Path("course_id") courseId: String,
+    ): CourseDates
 
     @POST("/api/course_experience/v1/reset_course_deadlines")
     suspend fun resetCourseDates(@Body courseBody: Map<String, String>): ResetCourseDates
@@ -106,4 +109,13 @@ interface CourseApi {
     suspend fun getDownloadCoursesPreview(
         @Path("username") username: String
     ): List<DownloadCoursePreview>
+
+    @GET("/api/mobile/v1/course_dates/{username}/")
+    suspend fun getUserDates(
+        @Path("username") username: String,
+        @Query("page") page: Int
+    ): CourseDatesResponse
+
+    @POST("/api/course_experience/v1/reset_all_relative_course_deadlines/")
+    suspend fun shiftAllDueDates()
 }

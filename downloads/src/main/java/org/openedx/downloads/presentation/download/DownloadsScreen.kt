@@ -77,7 +77,7 @@ import org.openedx.core.module.db.DownloadedState
 import org.openedx.core.module.db.DownloadedState.LOADING_COURSE_STRUCTURE
 import org.openedx.core.ui.HandleUIMessage
 import org.openedx.core.ui.IconText
-import org.openedx.core.ui.MainToolbar
+import org.openedx.core.ui.MainScreenToolbar
 import org.openedx.core.ui.OfflineModeDialog
 import org.openedx.core.ui.OpenEdXButton
 import org.openedx.core.ui.OpenEdXDropdownMenuItem
@@ -129,7 +129,7 @@ fun DownloadsScreen(
             .fillMaxSize(),
         backgroundColor = MaterialTheme.appColors.background,
         topBar = {
-            MainToolbar(
+            MainScreenToolbar(
                 modifier = Modifier
                     .statusBarsInset()
                     .displayCutoutForLandscape(),
