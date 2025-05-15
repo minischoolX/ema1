@@ -61,7 +61,10 @@ interface CourseApi {
     )
 
     @GET("/api/course_home/v1/dates/{course_id}")
-    suspend fun getCourseDates(@Path("course_id") courseId: String): CourseDates
+    suspend fun getCourseDates(
+        @Path("course_id") courseId: String,
+        @Query("allow_not_started_courses") allowNotStartedCourses: Boolean = true
+    ): CourseDates
 
     @POST("/api/course_experience/v1/reset_course_deadlines")
     suspend fun resetCourseDates(@Body courseBody: Map<String, String>): ResetCourseDates
