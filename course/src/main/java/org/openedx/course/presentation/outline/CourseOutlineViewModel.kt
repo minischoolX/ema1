@@ -20,6 +20,7 @@ import org.openedx.core.domain.model.CourseComponentStatus
 import org.openedx.core.domain.model.CourseDateBlock
 import org.openedx.core.domain.model.CourseDatesBannerInfo
 import org.openedx.core.domain.model.CourseStructure
+import org.openedx.core.extension.collectLatestNotNull
 import org.openedx.core.extension.getSequentialBlocks
 import org.openedx.core.extension.getVerticalBlocks
 import org.openedx.core.module.DownloadWorkerController
@@ -314,10 +315,12 @@ class CourseOutlineViewModel(
 
     fun openBlock(fragmentManager: FragmentManager, blockId: String) {
         viewModelScope.launch {
-            val courseStructure = interactor.getCourseStructure(courseId, false)
-            val blocks = courseStructure.blockData
-            getResumeBlock(blocks, blockId)
-            resumeBlock(fragmentManager, blockId)
+            interactor.getCourseStructureFlow(courseId, forceRefresh = false)
+                .collectLatestNotNull { courseStructure ->
+                    val blocks = courseStructure.blockData
+                    getResumeBlock(blocks, blockId)
+                    resumeBlock(fragmentManager, blockId)
+                }
         }
     }
 

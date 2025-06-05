@@ -239,7 +239,6 @@ class CourseOutlineViewModelTest {
         every { downloadDialogManager.showDownloadFailedPopup(any(), any()) } returns Unit
         every { preferencesManager.isRelativeDatesEnabled } returns true
 
-        coEvery { interactor.getCourseDates(any()) } returns mockedCourseDatesResult
         coEvery { interactor.getCourseDatesFlow(any()) } returns flowOf(mockedCourseDatesResult)
     }
 
@@ -544,7 +543,6 @@ class CourseOutlineViewModelTest {
     @Test
     fun `saveDownloadModels test`() = runTest(UnconfinedTestDispatcher()) {
         every { preferencesManager.videoSettings.wifiDownloadOnly } returns false
-        coEvery { interactor.getCourseStructure(any()) } returns courseStructure
         coEvery { interactor.getCourseStructureFlow(any(), any()) } returns flowOf(courseStructure)
         every { networkConnection.isWifiConnected() } returns true
         every { networkConnection.isOnline() } returns true
@@ -555,7 +553,6 @@ class CourseOutlineViewModelTest {
             )
         } returns Unit
         coEvery { workerController.saveModels(any()) } returns Unit
-        coEvery { interactor.getCourseStatus(any()) } returns CourseComponentStatus("id")
         coEvery { interactor.getCourseStatusFlow(any()) } returns flowOf(CourseComponentStatus("id"))
         coEvery { downloadDao.getAllDataFlow() } returns flow { emit(emptyList()) }
         every { config.getCourseUIConfig().isCourseDropdownNavigationEnabled } returns false
@@ -598,11 +595,9 @@ class CourseOutlineViewModelTest {
     @Test
     fun `saveDownloadModels only wifi download, with connection`() =
         runTest(UnconfinedTestDispatcher()) {
-            coEvery { interactor.getCourseStructure(any()) } returns courseStructure
-            coEvery { interactor.getCourseStructureFlow(any(), any()) } returns flowOf(
-                courseStructure
-            )
-            coEvery { interactor.getCourseStatus(any()) } returns CourseComponentStatus("id")
+            coEvery {
+                interactor.getCourseStructureFlow(any(), any())
+            } returns flowOf(courseStructure)
             coEvery { interactor.getCourseStatusFlow(any()) } returns flowOf(CourseComponentStatus("id"))
             every { preferencesManager.videoSettings.wifiDownloadOnly } returns true
             every { networkConnection.isWifiConnected() } returns true

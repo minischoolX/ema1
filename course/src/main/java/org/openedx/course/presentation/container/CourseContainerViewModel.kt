@@ -15,7 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.openedx.core.config.Config
@@ -185,7 +187,10 @@ class CourseContainerViewModel(
                 handleFetchError(e)
             }.collect { (courseStructure, courseEnrollmentDetails) ->
                 when {
-                    courseEnrollmentDetails != null -> handleCourseEnrollment(courseEnrollmentDetails)
+                    courseEnrollmentDetails != null -> handleCourseEnrollment(
+                        courseEnrollmentDetails
+                    )
+
                     courseStructure != null -> handleCourseStructureOnly(courseStructure)
                     else -> _courseAccessStatus.value = CourseAccessError.UNKNOWN
                 }
@@ -311,14 +316,14 @@ class CourseContainerViewModel(
 
     fun updateData() {
         viewModelScope.launch {
-            try {
-                interactor.getCourseStructure(courseId, isNeedRefresh = true)
-            } catch (ignore: Exception) {
-                _errorMessage.value =
-                    resourceManager.getString(CoreR.string.core_error_unknown_error)
-            }
-            _refreshing.value = false
-            courseNotifier.send(CourseStructureUpdated(courseId))
+            interactor.getCourseStructureFlow(courseId)
+                .catch {
+                    _errorMessage.value = resourceManager.getString(CoreR.string.core_error_unknown_error)
+                }.onCompletion {
+                    _refreshing.value = false
+                    courseNotifier.send(CourseStructureUpdated(courseId))
+                }
+                .collect()
         }
     }
 

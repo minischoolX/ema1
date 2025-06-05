@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.openedx.core.CalendarRouter
@@ -85,7 +89,11 @@ class CourseDatesViewModel(
                 (_uiState.value as? DatesUIState.Dates)?.let { currentUiState ->
                     val courseDates = currentUiState.courseDatesResult.datesSection.values.flatten()
                     _uiState.update {
-                        (it as CourseDatesUIState.CourseDates).copy(calendarSyncState = getCalendarState(courseDates))
+                        (it as CourseDatesUIState.CourseDates).copy(
+                            calendarSyncState = getCalendarState(
+                                courseDates
+                            )
+                        )
                     }
                 }
             }
@@ -96,28 +104,32 @@ class CourseDatesViewModel(
 
     private fun loadingCourseDatesInternal() {
         viewModelScope.launch {
-            try {
-                courseStructure = interactor.getCourseStructure(courseId = courseId)
-                isSelfPaced = courseStructure?.isSelfPaced ?: false
-                val datesResponse = interactor.getCourseDates(courseId = courseId)
-                if (datesResponse.datesSection.isEmpty()) {
-                    _uiState.value = CourseDatesUIState.Error
-                } else {
-                    val courseDates = datesResponse.datesSection.values.flatten()
-                    val calendarState = getCalendarState(courseDates)
-                    _uiState.value = CourseDatesUIState.CourseDates(datesResponse, calendarState)
-                    courseBannerType = datesResponse.courseBanner.bannerType
-                    checkIfCalendarOutOfDate()
-                }
-            } catch (e: Exception) {
+            val courseStructureFlow = interactor.getCourseStructureFlow(courseId)
+                .catch { emit(null) }
+            val courseDatesFlow = interactor.getCourseDatesFlow(courseId)
+            courseStructureFlow.combine(courseDatesFlow) { courseStructure, courseDates ->
+                courseStructure to courseDates
+            }.catch { e ->
                 _uiState.value = CourseDatesUIState.Error
                 if (e.isInternetError()) {
                     _uiMessage.emit(
                         UIMessage.SnackBarMessage(resourceManager.getString(CoreR.string.core_error_no_connection))
                     )
                 }
-            } finally {
+            }.onCompletion {
                 courseNotifier.send(CourseLoading(false))
+            }.collectLatest { (courseStructure, courseDatesResponse) ->
+                isSelfPaced = courseStructure?.isSelfPaced ?: false
+                if (courseDatesResponse.datesSection.isEmpty()) {
+                    _uiState.value = CourseDatesUIState.Error
+                } else {
+                    val courseDates = courseDatesResponse.datesSection.values.flatten()
+                    val calendarState = getCalendarState(courseDates)
+                    _uiState.value =
+                        CourseDatesUIState.CourseDates(courseDatesResponse, calendarState)
+                    courseBannerType = courseDatesResponse.courseBanner.bannerType
+                    checkIfCalendarOutOfDate()
+                }
             }
         }
     }

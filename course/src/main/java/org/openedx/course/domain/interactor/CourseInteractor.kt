@@ -13,21 +13,21 @@ class CourseInteractor(
     private val repository: CourseRepository
 ) : CourseInteractor {
 
-    suspend fun getCourseStructureFlow(
+    override suspend fun getCourseStructureFlow(
         courseId: String,
-        forceRefresh: Boolean = true
+        forceRefresh: Boolean
     ): Flow<CourseStructure?> {
         return repository.getCourseStructureFlow(courseId, forceRefresh)
     }
 
-    override suspend fun getCourseStructure(
+    private suspend fun getCourseStructure(
         courseId: String,
         isNeedRefresh: Boolean
     ): CourseStructure {
         return repository.getCourseStructure(courseId, isNeedRefresh)
     }
 
-    override suspend fun getCourseStructureFromCache(courseId: String): CourseStructure {
+    private suspend fun getCourseStructureFromCache(courseId: String): CourseStructure {
         return repository.getCourseStructureFromCache(courseId)
     }
 
@@ -35,7 +35,7 @@ class CourseInteractor(
         return repository.getEnrollmentDetailsFlow(courseId)
     }
 
-    suspend fun getEnrollmentDetails(courseId: String): CourseEnrollmentDetails {
+    private suspend fun getEnrollmentDetails(courseId: String): CourseEnrollmentDetails {
         return repository.getEnrollmentDetails(courseId = courseId)
     }
 
@@ -84,11 +84,11 @@ class CourseInteractor(
 
     suspend fun getCourseStatusFlow(courseId: String) = repository.getCourseStatusFlow(courseId)
 
-    suspend fun getCourseStatus(courseId: String) = repository.getCourseStatus(courseId)
+    private suspend fun getCourseStatus(courseId: String) = repository.getCourseStatus(courseId)
 
     suspend fun getCourseDatesFlow(courseId: String) = repository.getCourseDatesFlow(courseId)
 
-    suspend fun getCourseDates(courseId: String) = repository.getCourseDates(courseId)
+    private suspend fun getCourseDates(courseId: String) = repository.getCourseDates(courseId)
 
     suspend fun resetCourseDates(courseId: String) = repository.resetCourseDates(courseId)
 

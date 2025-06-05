@@ -3,6 +3,7 @@ package org.openedx.app.deeplink
 import androidx.fragment.app.FragmentManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.openedx.app.AppRouter
 import org.openedx.app.MainFragment
@@ -275,7 +276,9 @@ class DeepLinkRouter(
             deepLink.componentId?.let { componentId ->
                 launch {
                     try {
-                        val courseStructure = courseInteractor.getCourseStructure(courseId)
+                        val courseStructure = courseInteractor
+                            .getCourseStructureFlow(courseId, false)
+                            .firstOrNull() ?: return@launch
                         courseStructure.blockData
                             .find { it.descendants.contains(componentId) }?.let { block ->
                                 appRouter.navigateToCourseContainer(

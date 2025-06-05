@@ -11,7 +11,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onChildren
 import org.junit.Rule
 import org.junit.Test
-import org.openedx.core.AppUpdateState
 import org.openedx.core.domain.model.Certificate
 import org.openedx.core.domain.model.CourseSharingUtmParameters
 import org.openedx.core.domain.model.CoursewareAccess
@@ -83,8 +82,7 @@ class MyCoursesScreenTest {
                 onReloadClick = {},
                 onSwipeRefresh = {},
                 paginationCallback = {},
-                onItemClick = {},
-                appUpgradeParameters = AppUpdateState.AppUpgradeParameters(),
+                onItemClick = {}
             )
         }
 
@@ -115,8 +113,7 @@ class MyCoursesScreenTest {
                 onReloadClick = {},
                 onSwipeRefresh = {},
                 paginationCallback = {},
-                onItemClick = {},
-                appUpgradeParameters = AppUpdateState.AppUpgradeParameters(),
+                onItemClick = {}
             )
         }
 
@@ -141,7 +138,6 @@ class MyCoursesScreenTest {
                 onSwipeRefresh = {},
                 paginationCallback = {},
                 onItemClick = {},
-                appUpgradeParameters = AppUpdateState.AppUpgradeParameters(),
             )
         }
 

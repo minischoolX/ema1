@@ -207,7 +207,9 @@ class CourseContainerViewModelTest {
         every { corePreferences.appConfig } returns appConfig
         every { courseNotifier.notifier } returns emptyFlow()
         every { config.getApiHostURL() } returns "baseUrl"
-        coEvery { interactor.getEnrollmentDetails(any()) } returns courseDetails
+        coEvery {
+            interactor.getEnrollmentDetailsFlow(any())
+        } returns flowOf(courseDetails)
         every { imageProcessor.loadImage(any(), any(), any()) } returns Unit
         every { imageProcessor.applyBlur(any(), any()) } returns mockBitmap
     }
@@ -380,6 +382,7 @@ class CourseContainerViewModelTest {
         assert(viewModel.courseAccessStatus.value != null)
     }
 
+    @Suppress("TooGenericExceptionThrown")
     @Test
     fun `updateData unknown exception`() = runTest {
         val viewModel = CourseContainerViewModel(
@@ -397,12 +400,12 @@ class CourseContainerViewModelTest {
             calendarSyncScheduler,
             courseRouter
         )
-        coEvery { interactor.getCourseStructure(any(), true) } throws Exception()
+        coEvery { interactor.getCourseStructureFlow(any()) } returns flow { throw Exception() }
         coEvery { courseNotifier.send(CourseStructureUpdated("")) } returns Unit
         viewModel.updateData()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { interactor.getCourseStructure(any(), true) }
+        coVerify(exactly = 1) { interactor.getCourseStructureFlow(any()) }
 
         val message = viewModel.errorMessage.value
         assertEquals(somethingWrong, message)
@@ -426,13 +429,17 @@ class CourseContainerViewModelTest {
             calendarSyncScheduler,
             courseRouter
         )
-        coEvery { interactor.getEnrollmentDetails(any()) } returns courseDetails
-        coEvery { interactor.getCourseStructure(any(), true) } returns courseStructure
+        coEvery {
+            interactor.getEnrollmentDetailsFlow(any())
+        } returns flowOf(courseDetails)
+        coEvery {
+            interactor.getCourseStructureFlow(any(), true)
+        } returns flowOf(courseStructure)
         coEvery { courseNotifier.send(CourseStructureUpdated("")) } returns Unit
         viewModel.updateData()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { interactor.getCourseStructure(any(), true) }
+        coVerify(exactly = 1) { interactor.getCourseStructureFlow(any(), true) }
 
         assert(viewModel.errorMessage.value == null)
         assert(!viewModel.refreshing.value)

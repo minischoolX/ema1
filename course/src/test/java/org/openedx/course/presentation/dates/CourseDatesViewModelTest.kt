@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -152,7 +153,9 @@ class CourseDatesViewModelTest {
         every { resourceManager.getString(id = R.string.platform_name) } returns openEdx
         every { resourceManager.getString(R.string.core_error_no_connection) } returns noInternet
         every { resourceManager.getString(R.string.core_error_unknown_error) } returns somethingWrong
-        coEvery { interactor.getCourseStructure(any()) } returns courseStructure
+        coEvery {
+            interactor.getCourseStructureFlow(any())
+        } returns flowOf(courseStructure)
         every { corePreferences.user } returns user
         every { corePreferences.appConfig } returns appConfig
         every { notifier.notifier } returns flowOf(CourseLoading(false))
@@ -189,7 +192,7 @@ class CourseDatesViewModelTest {
             courseRouter,
             calendarRouter,
         )
-        coEvery { interactor.getCourseDates(any()) } throws UnknownHostException()
+        coEvery { interactor.getCourseDatesFlow(any()) } returns flow { throw UnknownHostException() }
         val message = async {
             withTimeoutOrNull(5000) {
                 viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
@@ -197,12 +200,13 @@ class CourseDatesViewModelTest {
         }
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { interactor.getCourseDates(any()) }
+        coVerify(exactly = 1) { interactor.getCourseDatesFlow(any()) }
 
         Assert.assertEquals(noInternet, message.await()?.message)
         assert(viewModel.uiState.value is CourseDatesUIState.Error)
     }
 
+    @Suppress("TooGenericExceptionThrown")
     @Test
     fun `getCourseDates unknown exception`() = runTest(UnconfinedTestDispatcher()) {
         val viewModel = CourseDatesViewModel(
@@ -219,7 +223,7 @@ class CourseDatesViewModelTest {
             courseRouter,
             calendarRouter,
         )
-        coEvery { interactor.getCourseDates(any()) } throws Exception()
+        coEvery { interactor.getCourseDatesFlow(any()) } returns flow { throw Exception() }
         val message = async {
             withTimeoutOrNull(5000) {
                 viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
@@ -227,7 +231,7 @@ class CourseDatesViewModelTest {
         }
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { interactor.getCourseDates(any()) }
+        coVerify(exactly = 1) { interactor.getCourseDatesFlow(any()) }
 
         assert(message.await()?.message.isNullOrEmpty())
         assert(viewModel.uiState.value is CourseDatesUIState.Error)
@@ -249,7 +253,7 @@ class CourseDatesViewModelTest {
             courseRouter,
             calendarRouter,
         )
-        coEvery { interactor.getCourseDates(any()) } returns mockedCourseDatesResult
+        coEvery { interactor.getCourseDatesFlow(any()) } returns flowOf(mockedCourseDatesResult)
         val message = async {
             withTimeoutOrNull(5000) {
                 viewModel.uiMessage.first() as? UIMessage.SnackBarMessage
@@ -257,7 +261,7 @@ class CourseDatesViewModelTest {
         }
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { interactor.getCourseDates(any()) }
+        coVerify(exactly = 1) { interactor.getCourseDatesFlow(any()) }
 
         assert(message.await()?.message.isNullOrEmpty())
         assert(viewModel.uiState.value is CourseDatesUIState.CourseDates)
@@ -279,9 +283,11 @@ class CourseDatesViewModelTest {
             courseRouter,
             calendarRouter,
         )
-        coEvery { interactor.getCourseDates(any()) } returns CourseDatesResult(
-            datesSection = linkedMapOf(),
-            courseBanner = mockCourseDatesBannerInfo,
+        coEvery { interactor.getCourseDatesFlow(any()) } returns flowOf(
+            CourseDatesResult(
+                datesSection = linkedMapOf(),
+                courseBanner = mockCourseDatesBannerInfo,
+            )
         )
         val message = async {
             withTimeoutOrNull(5000) {
@@ -290,7 +296,7 @@ class CourseDatesViewModelTest {
         }
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { interactor.getCourseDates(any()) }
+        coVerify(exactly = 1) { interactor.getCourseDatesFlow(any()) }
 
         assert(message.await()?.message.isNullOrEmpty())
         assert(viewModel.uiState.value is CourseDatesUIState.Error)

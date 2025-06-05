@@ -4,10 +4,13 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.openedx.core.BlockType
 import org.openedx.core.R
 import org.openedx.core.domain.model.Block
+import org.openedx.core.domain.model.CourseStructure
+import org.openedx.core.extension.collectLatestNotNull
 import org.openedx.core.presentation.course.CourseViewMode
 import org.openedx.core.system.notifier.CourseNotifier
 import org.openedx.core.system.notifier.CourseSectionChanged
@@ -54,19 +57,17 @@ class CourseSectionViewModel(
         _uiState.value = CourseSectionUIState.Loading
         viewModelScope.launch {
             try {
-                val courseStructure = when (mode) {
-                    CourseViewMode.FULL -> interactor.getCourseStructure(courseId)
-                    CourseViewMode.VIDEOS -> interactor.getCourseStructureForVideos(courseId)
+                when (mode) {
+                    CourseViewMode.FULL -> {
+                        interactor.getCourseStructureFlow(courseId)
+                            .catch { e -> throw e }
+                            .collectLatestNotNull { emitBlocksUiState(it, blockId) }
+                    }
+                    CourseViewMode.VIDEOS -> {
+                        val courseStructure = interactor.getCourseStructureForVideos(courseId)
+                        emitBlocksUiState(courseStructure, blockId)
+                    }
                 }
-                val blocks = courseStructure.blockData
-                val newList = getDescendantBlocks(blocks, blockId)
-                val sequentialBlock = getSequentialBlock(blocks, blockId)
-                _uiState.value =
-                    CourseSectionUIState.Blocks(
-                        blocks = ArrayList(newList),
-                        courseName = courseStructure.name,
-                        sectionName = sequentialBlock.displayName
-                    )
             } catch (e: Exception) {
                 if (e.isInternetError()) {
                     _uiMessage.value =
@@ -77,6 +78,18 @@ class CourseSectionViewModel(
                 }
             }
         }
+    }
+
+    private fun emitBlocksUiState(courseStructure: CourseStructure, blockId: String) {
+        val blocks = courseStructure.blockData
+        val newList = getDescendantBlocks(blocks, blockId)
+        val sequentialBlock = getSequentialBlock(blocks, blockId)
+        _uiState.value =
+            CourseSectionUIState.Blocks(
+                blocks = ArrayList(newList),
+                courseName = courseStructure.name,
+                sectionName = sequentialBlock.displayName
+            )
     }
 
     private fun getDescendantBlocks(blocks: List<Block>, id: String): List<Block> {
