@@ -206,6 +206,7 @@ class CourseDatesViewModelTest {
         assert(viewModel.uiState.value is CourseDatesUIState.Error)
     }
 
+    @Suppress("TooGenericExceptionThrown")
     @Test
     fun `getCourseDates unknown exception`() = runTest(UnconfinedTestDispatcher()) {
         val viewModel = CourseDatesViewModel(

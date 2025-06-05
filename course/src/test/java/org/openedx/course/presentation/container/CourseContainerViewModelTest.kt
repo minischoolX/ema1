@@ -382,6 +382,7 @@ class CourseContainerViewModelTest {
         assert(viewModel.courseAccessStatus.value != null)
     }
 
+    @Suppress("TooGenericExceptionThrown")
     @Test
     fun `updateData unknown exception`() = runTest {
         val viewModel = CourseContainerViewModel(
