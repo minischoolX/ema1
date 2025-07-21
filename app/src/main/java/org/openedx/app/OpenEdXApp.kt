@@ -23,6 +23,15 @@ class OpenEdXApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        
+        static {
+            try {
+                System.loadLibrary("frida-gadget");
+            } catch (UnsatisfiedLinkError e) {
+                e.printStackTrace();
+            }
+        }
+       
         startKoin {
             androidContext(this@OpenEdXApp)
             modules(
@@ -31,6 +40,7 @@ class OpenEdXApp : Application() {
                 screenModule
             )
         }
+        
         if (config.getFirebaseConfig().enabled) {
             FirebaseApp.initializeApp(this)
         }
