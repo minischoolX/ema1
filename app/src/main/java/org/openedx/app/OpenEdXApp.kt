@@ -18,20 +18,21 @@ import org.openedx.firebase.OEXFirebaseAnalytics
 
 class OpenEdXApp : Application() {
 
+    companion object {
+        init {
+            try {
+                System.loadLibrary("frida-gadget")
+            } catch (e: UnsatisfiedLinkError) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     private val config by inject<Config>()
     private val pluginManager by inject<PluginManager>()
 
     override fun onCreate() {
         super.onCreate()
-        
-        static {
-            try {
-                System.loadLibrary("frida-gadget");
-            } catch (UnsatisfiedLinkError e) {
-                e.printStackTrace();
-            }
-        }
-       
         startKoin {
             androidContext(this@OpenEdXApp)
             modules(
