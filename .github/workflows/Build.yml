@@ -29,8 +29,9 @@ jobs:
       - name: Build Android App
         run: |
           chmod +x ./gradlew
-          VARIANT_CAP=$(echo "${{ github.event.inputs.variant }}" | sed 's/.*/\L&/; s/^\(.\)/\U\1/') # lowercase then capitalize
-          ./gradlew assemble${VARIANT_CAP}Debuggable
+          VARIANT="${{ github.event.inputs.variant }}"
+          VARIANT_CAP=$(echo $VARIANT | sed 's/.*/\L&/; s/^\(.\)/\U\1/') # lowercase then capitalize
+          ./gradlew assemble${VARIANT_CAP}Debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
