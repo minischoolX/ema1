@@ -1,5 +1,4 @@
 APPLICATION_ID: org.edx.mobile
-THEME_DIRECTORY: edx
 FIREBASE:
   ENABLED: true
   ANALYTICS_SOURCE: segment
