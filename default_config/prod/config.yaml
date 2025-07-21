@@ -1,88 +1,113 @@
-API_HOST_URL: 'http://localhost:8000'
-APPLICATION_ID: 'org.openedx.app'
-ENVIRONMENT_DISPLAY_NAME: 'Localhost'
-URI_SCHEME: ''
-FEEDBACK_EMAIL_ADDRESS: 'support@example.com'
-FAQ_URL: ''
-OAUTH_CLIENT_ID: 'OAUTH_CLIENT_ID'
-
-# Keep empty to hide setting
-AGREEMENT_URLS:
-  PRIVACY_POLICY_URL: ''
-  COOKIE_POLICY_URL: ''
-  DATA_SELL_CONSENT_URL: ''
-  TOS_URL: ''
-  EULA_URL: ''
-  SUPPORTED_LANGUAGES: [ ] #en is default language
-
-DISCOVERY:
-  TYPE: 'native'
-  WEBVIEW:
-    BASE_URL: ''
-    COURSE_DETAIL_TEMPLATE: ''
-    PROGRAM_DETAIL_TEMPLATE: ''
-
-PROGRAM:
-  TYPE: 'native'
-  WEBVIEW:
-    BASE_URL: ''
-    PROGRAM_DETAIL_TEMPLATE: ''
-
-DASHBOARD:
-  TYPE: 'gallery'
-
+APPLICATION_ID: org.edx.mobile
+THEME_DIRECTORY: edx
 FIREBASE:
-  ENABLED: false
-  CLOUD_MESSAGING_ENABLED: false
-  PROJECT_NUMBER: ''
-  PROJECT_ID: ''
-  APPLICATION_ID: '' #App ID field from the Firebase console or mobilesdk_app_id from the google-services.json file.
-  API_KEY: ''
-
-BRAZE:
-  ENABLED: false
-  PUSH_NOTIFICATIONS_ENABLED: false
-
+  ENABLED: true
+  ANALYTICS_SOURCE: segment
+  CLOUD_MESSAGING_ENABLED: true
+  PROJECT_NUMBER: '902688895829'
+  PROJECT_ID: openedx-mobile
+  OAUTH_CLIENT_ID: 902688895829-khh8rut4bc420f8u64ge9qo3ctblidf6.apps.googleusercontent.com
+  APPLICATION_ID: 1:902688895829:android:c04089bb49270266
+  API_KEY: AIzaSyDZ9cpYYD585dkXO0LxbuPVA-s07xoD5PY
+SEGMENT_IO:
+  ENABLED: true
+  SEGMENT_IO_WRITE_KEY: d3q35zMPdifpnVDPnnwmTukmfmyJVJh9
 GOOGLE:
-  ENABLED: false
-  CLIENT_ID: ''
-
-MICROSOFT:
-  ENABLED: false
-  CLIENT_ID: ''
-  PACKAGE_SIGNATURE: ''
-
-FACEBOOK:
-  ENABLED: false
-  FACEBOOK_APP_ID: ''
-  CLIENT_TOKEN: ''
-
-BRANCH:
-  ENABLED: false
-  KEY: ''
-  URI_SCHEME: ''
-  HOST: ''
-  ALTERNATE_HOST: ''
-
-#Platform names
-PLATFORM_NAME: "OpenEdX"
-PLATFORM_FULL_NAME: "OpenEdX"
-#App sourceSets dir
-THEME_DIRECTORY: "openedx"
-#tokenType enum accepts JWT and BEARER only
-TOKEN_TYPE: "JWT"
-#feature flag for activating What’s New feature
-WHATS_NEW_ENABLED: false
-#feature flag enable Social Login buttons
-SOCIAL_AUTH_ENABLED: false
-#feature flag to enable registration from app
-REGISTRATION_ENABLED: true
-#feature flag to do the authentication flow in the browser to log in
-BROWSER_LOGIN: false
-#feature flag to do the registration for in the browser
-BROWSER_REGISTRATION: false
-#Course navigation feature flags
+  ENABLED: true
+  CLIENT_ID: 370673641490-nd3s6q740l96uvk1vivsab65rltkgoc0.apps.googleusercontent.com
+TEST_ACCOUNT:
+  NAME: staff@example.com
+  PASSWORD: edx
+OAUTH_CLIENT_ID: wGSpSAiKsam8CgBpYvClGBvPVJoLdgni6OpQnjR2
+TOKEN_TYPE: JWT
+APP_UPDATE_URIS:
+- market://details?id={application_id}
+- https://play.google.com/store/apps/details?id={application_id}
+DOWNLOAD_TO_SD_CARD_ENABLED: true
+API_HOST_URL: https://courses.edx.org
+API_URL_VERSION:
+  BLOCKS: v2
+  REGISTRATION: v2
+  ENROLLMENTS: v2
+ENVIRONMENT_DISPLAY_NAME: ''
+PLATFORM_NAME: edX
+PHONETIC_PLATFORM_NAME: E D X
+PLATFORM_DESTINATION_NAME: edx.org
+URI_SCHEME: edxapp
+FEEDBACK_EMAIL_ADDRESS: mobile-support@edx.org
+FAQ_URL: https://support.edx.org/hc/en-us/sections/4408224345879
+DELETE_ACCOUNT_URL: https://account.edx.org/#delete-account
+ECOMMERCE_URL: https://ecommerce.edx.org
+DISCOVERY:
+  TYPE: webview
+  WEBVIEW:
+    BASE_URL: https://www.edx.org/webview/v2/search
+    COURSE_DETAIL_TEMPLATE: https://www.edx.org/webview/{path_id}
+    PROGRAM_DETAIL_TEMPLATE: https://www.edx.org/webview/{path_id}
+PROGRAM:
+  TYPE: webview
+  WEBVIEW:
+    BASE_URL: https://courses.edx.org/dashboard/programs_fragment/?mobile_only=true
+    PROGRAM_DETAIL_TEMPLATE: https://courses.edx.org/dashboard/{path_id}?mobile_only=true
+AGREEMENT_URLS:
+  PRIVACY_POLICY_URL: https://www.edx.org/webview/edx-privacy-policy
+  COOKIE_POLICY_URL: https://www.edx.org/webview/edx-privacy-policy/cookies
+  DATA_SELL_CONSENT_URL: https://www.edx.org/webview/edx-privacy-policy/do-not-sell-my-personal-data
+  TOS_URL: https://www.edx.org/webview/edx-terms-service
+  EULA_URL: https://www.edx.org/webview/eula
+  SUPPORTED_LANGUAGES:
+  - es
 UI_COMPONENTS:
-  COURSE_DROPDOWN_NAVIGATION_ENABLED: false
-  COURSE_UNIT_PROGRESS_ENABLED: false
-  COURSE_DOWNLOAD_QUEUE_SCREEN: false
+  COURSE_UNIT_PROGRESS_ENABLED: true
+  COURSE_DROPDOWN_NAVIGATION_ENABLED: true
+DASHBOARD:
+  TYPE: gallery
+PRE_LOGIN_EXPERIENCE_ENABLED: true
+SOCIAL_AUTH_ENABLED: true
+ANNOUNCEMENTS_ENABLED: true
+BADGES_ENABLED: false
+CERTIFICATES_ENABLED: true
+COURSE_DATES_ENABLED: true
+COURSE_SHARING_ENABLED: true
+COURSE_VIDEOS_ENABLED: true
+DISCUSSIONS_ENABLED: true
+DISCUSSIONS_ENABLE_PROFILE_PICTURE_PARAM: true
+PUSH_NOTIFICATIONS_ENABLED: false
+NEW_LOGISTRATION_ENABLED: true
+REGISTRATION_ENABLED: true
+USER_PROFILES_ENABLED: true
+VIDEO_TRANSCRIPT_ENABLED: true
+WHATS_NEW_ENABLED: true
+APP_REVIEWS_ENABLED: true
+FULLSTORY:
+  ENABLED: true
+  ORG_ID: R005M
+  RECORD_ON_START: false
+  SWIFTUI_ENABLED: true
+  SWIFTUI_SELECTOR_VERSION: 3
+  SWIFTUI_PREVIEW_VERSION: 2
+BRANCH:
+  ENABLED: true
+  KEY: key_live_kpxBY7wsvq7tp8eu5THJGlbauxdgC13u
+  URI_SCHEME: edx
+  HOST: edx.app.link
+  ALTERNATE_HOST: edx-alternate.app.link
+TWITTER:
+  HASHTAG: "@edXOnline"
+FACEBOOK:
+  ENABLED: true
+  FACEBOOK_APP_ID: '1518363378406228'
+  CLIENT_TOKEN: e3e5c8cbb58b1df6cb088dd773ef77bc
+MICROSOFT:
+  ENABLED: true
+  CLIENT_ID: 5ea2d1b0-1713-4069-a764-1be8f40a6210
+  PACKAGE_SIGNATURE: ga0RGNYHvNM5d0SLGQfpQWAPGJ8=
+YOUTUBE_PLAYER:
+  ENABLED: true
+BRAZE:
+  ENABLED: true
+  PUSH_NOTIFICATIONS_ENABLED: true
+OPTIMIZELY:
+  ENABLED: true
+  SDK_KEY: B1ha73pEGEG2rbcVZSRGj
+SPEED_TEST_ENABLED: false
