@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: 'Build Variant (develop, stage, prod)'
+        required: true
+        default: 'prod'
+
+jobs:
+  android_Build:
+    name: Android App Building
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '8'
+
+      - name: Setup Gradle Cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build Android App
+        run: |
+          chmod +x ./gradlew
+          VARIANT_CAP=$(echo "${{ github.event.inputs.variant }}" | sed 's/.*/\L&/; s/^\(.\)/\U\1/') # lowercase then capitalize
+          ./gradlew assemble${VARIANT_CAP}Debuggable
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: DebugApp
+          path: app/build/outputs/apk/${{ github.event.inputs.variant }}/app-${{ github.event.inputs.variant }}-debuggable.apk
