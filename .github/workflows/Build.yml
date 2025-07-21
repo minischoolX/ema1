@@ -33,7 +33,7 @@ jobs:
           ./gradlew assemble${VARIANT_CAP}Debuggable
 
       - name: Upload APK
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: DebugApp
           path: app/build/outputs/apk/${{ github.event.inputs.variant }}/app-${{ github.event.inputs.variant }}-debuggable.apk
