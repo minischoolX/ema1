@@ -24,7 +24,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Gradle Cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Build Android App
         run: |
